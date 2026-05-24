@@ -1,0 +1,60 @@
+# ==========================================
+# macOS System Files
+# ==========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+.Spotlight-V100
+.Trashes
+
+# ==========================================
+# AI Agents & CLI Tools (Local State/Logs)
+# ==========================================
+.antigravitycli/
+.claude/
+**/.claude/
+**/.antigravitycli/
+
+# ==========================================
+# Editors & IDEs
+# ==========================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# ==========================================
+# Environment & Secrets (Security First)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+
+# ==========================================
+# Node.js (If web/scripts added later)
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Python (If automation scripts added later)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
