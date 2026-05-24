@@ -1,0 +1,69 @@
+{
+  "skill_name": "skill-kit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我查看我已经安装了哪些 skill，列出每个 skill 在哪些 agent 上已安装",
+      "expected_output": "扫描 ~/.claude/skills、~/.gemini/skills、~/.codex/skills 三个目录，找出所有软链接，以表格形式展示，每行一个 skill，列出哪些 agent 已安装（✓）哪些未安装（—）",
+      "files": [],
+      "assertions": [
+        {
+          "name": "runs-scan-command",
+          "description": "执行了 find 命令扫描三个 agent 的 skills 目录"
+        },
+        {
+          "name": "output-table-format",
+          "description": "输出结果是表格格式，包含 skill 名称和各 agent 的安装状态"
+        },
+        {
+          "name": "uses-checkmark-symbols",
+          "description": "使用 ✓ 和 — 符号来表示安装/未安装状态"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我想把这个 skill 安装到 Claude Code：~/workspace/ai/skills/liubei",
+      "expected_output": "识别为本地路径，检测该路径下有 SKILL.md（单个 skill），弹出 AskUserQuestion 让用户选择目标 agent，展示安装计划（显示 ln -s 命令），等用户确认后执行",
+      "files": [],
+      "assertions": [
+        {
+          "name": "checks-for-skill-md",
+          "description": "检查路径下是否存在 SKILL.md 来判断目录类型"
+        },
+        {
+          "name": "asks-user-for-agent-selection",
+          "description": "使用 AskUserQuestion 工具让用户以复选框形式选择目标 agent"
+        },
+        {
+          "name": "shows-install-plan-before-executing",
+          "description": "在执行前展示安装计划，包含 ln -s 命令，等待用户确认"
+        },
+        {
+          "name": "uses-absolute-paths",
+          "description": "生成的 ln -s 命令使用绝对路径而非 ~ 符号"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "帮我从 Claude Code 卸载 skill-kit 这个 skill",
+      "expected_output": "识别用户已明确说明了 agent（Claude Code）和 skill 名称（skill-kit），跳过选择步骤，直接展示卸载计划（rm 命令），等用户确认后执行，注意只删除软链接不删源文件",
+      "files": [],
+      "assertions": [
+        {
+          "name": "skips-redundant-selection",
+          "description": "用户已明确指定 agent 和 skill，不需要再次询问选择"
+        },
+        {
+          "name": "shows-rm-plan-before-executing",
+          "description": "展示卸载计划（rm 命令），在用户确认前不执行"
+        },
+        {
+          "name": "warns-symlink-only",
+          "description": "说明只删除软链接，源文件目录不受影响"
+        }
+      ]
+    }
+  ]
+}
