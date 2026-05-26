@@ -1,0 +1,6 @@
+interface:
+  display_name: "模型推荐"
+  short_description: "按任务复杂度推荐模型和思考等级"
+  default_prompt: "使用 $recommending-models 为我的任务推荐合适的 AI 模型和 reasoning/thinking level。"
+policy:
+  allow_implicit_invocation: false

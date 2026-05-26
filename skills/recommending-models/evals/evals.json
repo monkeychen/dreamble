@@ -1,0 +1,117 @@
+{
+  "skill_name": "recommending-models",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我把这段话改得更像公众号开头。",
+      "expected_output": "不触发 recommending-models；直接完成写作任务，不插入模型推荐。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "does-not-trigger-without-explicit-keyword",
+          "description": "用户没有说推荐模型、先推荐模型、选模型、用什么模型等关键词时，不输出模型推荐。"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "先推荐模型：我想批量把 300 条客服对话分类成 8 个标签。",
+      "expected_output": "推荐小/快/低成本模型，例如 mini、flash、haiku class；思考等级 none 或 low；说明这是低风险结构化分类任务，并给出升级条件。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "chooses-cheap-fast-model",
+          "description": "简单批量分类任务不应推荐旗舰模型作为默认选择。"
+        },
+        {
+          "name": "uses-low-reasoning",
+          "description": "思考等级应为 none 或 low，而不是 high/max。"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "推荐模型：我要让 agent 重构一个多文件 Next.js 项目并修 CI。",
+      "expected_output": "推荐 coding/agentic flagship 或 Codex/Claude Sonnet/Opus 级模型；思考等级 high 或 xhigh；说明需要工具调用、跨文件一致性和验证。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "chooses-agentic-coding-model",
+          "description": "多文件重构和 CI 修复应选择强代码/agentic 模型。"
+        },
+        {
+          "name": "uses-high-reasoning",
+          "description": "思考等级应至少 high。"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "用什么模型研究今天 OpenAI、Anthropic、Google 最新模型变化？",
+      "expected_output": "推荐具备联网/搜索能力的强模型；思考等级 high；明确需要核对官方来源，不能只依赖内置 catalog。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "requires-official-sources",
+          "description": "涉及今天/最新模型变化时，必须要求查询官方来源。"
+        },
+        {
+          "name": "uses-research-routing",
+          "description": "应按 deep research/current facts 路由，而不是按普通问答路由。"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "推荐模型：我有 200 张产品截图，要分析 UI 问题并输出改版建议。",
+      "expected_output": "推荐原生多模态强模型，优先考虑 Gemini/OpenAI/Claude 的视觉能力；思考等级 medium 或 high；说明图片数量、上下文和输出质量的权衡。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "routes-to-multimodal-model",
+          "description": "截图分析任务应显式选择多模态模型，而不是纯文本模型。"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "推荐模型：我想让 AI 根据体检报告判断要不要停药。",
+      "expected_output": "推荐最强模型加 high/xhigh 思考和可靠来源，但同时说明这是医疗高风险任务，不能替代医生；建议用于整理问题、生成就医沟通清单，而不是直接决策。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "flags-medical-risk",
+          "description": "医疗用药决策必须标记高风险，并限制 AI 角色。"
+        },
+        {
+          "name": "uses-highest-reasoning",
+          "description": "高风险医疗任务应使用 high 或 xhigh。"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "推荐模型：我在 ChatGPT 里写一篇公众号文章，想要质量好但别太慢。",
+      "expected_output": "识别入口为 ChatGPT，推荐 GPT-5.5 Instant 或 GPT-5.5 Thinking + Standard，而不是 API reasoning.effort；说明 Instant 适合日常写作，Thinking Standard 适合更高质量。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-chatgpt-surface-options",
+          "description": "ChatGPT 场景应使用 Instant/Thinking/Pro 和 thinking time，而不是 Codex/API 参数。"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "推荐模型：我在 Antigravity 里改一个大型 Next.js 项目。",
+      "expected_output": "识别入口为 Antigravity，推荐 Gemini-3.5-Flash + high 或 Gemini-3.1-Pro + high；说明大型 agentic coding 需要更高 thinking。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-antigravity-surface-options",
+          "description": "Antigravity 场景应使用 Gemini-3.5-Flash/Gemini-3.1-Pro 与 low/medium/high，而不是 Gemini API thinkingBudget。"
+        }
+      ]
+    }
+  ]
+}

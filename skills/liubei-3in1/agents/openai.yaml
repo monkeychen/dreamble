@@ -1,0 +1,7 @@
+interface:
+  display_name: "刘备教授高保真文风-3in1"
+  short_description: "高保真复刻刘备教授财经杂谈文风规则"
+  default_prompt: "Use $liubei-3in1 to write a 刘备教授味儿的公众号文章。"
+
+policy:
+  allow_implicit_invocation: true
