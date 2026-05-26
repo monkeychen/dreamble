@@ -14,6 +14,9 @@ description: 管理 AI 编程 Agent（Claude Code、Gemini CLI、Codex）的 ski
 | Claude Code | `~/.claude/skills/` |
 | Gemini CLI | `~/.gemini/skills/` |
 | Codex | `~/.codex/skills/` |
+| 共享（Gemini CLI + Codex） | `~/.agents/skills/` |
+
+> `~/.agents/skills/` 是 Gemini CLI 和 Codex 启动时自动加载的共享目录，安装在此处的 skill 对两个 agent 均生效，无需分别安装。
 
 ## 判断操作模式
 
@@ -29,26 +32,33 @@ description: 管理 AI 编程 Agent（Claude Code、Gemini CLI、Codex）的 ski
 
 ## 查看流程
 
-扫描三个标准 agent 目录，列出其中所有软链接：
+扫描四个目录（含共享目录），同时列出**软链接**和**含 SKILL.md 的真实目录**：
 
 ```bash
-for dir in ~/.claude/skills ~/.gemini/skills ~/.codex/skills; do
+for dir in ~/.claude/skills ~/.gemini/skills ~/.codex/skills ~/.agents/skills; do
   echo "=== $dir ==="
-  find "$dir" -maxdepth 1 -type l -exec basename {} \; 2>/dev/null || echo "(空)"
+  # 软链接
+  find "$dir" -maxdepth 1 -type l -exec basename {} \; 2>/dev/null
+  # 真实目录（非软链接，且包含 SKILL.md）
+  find "$dir" -maxdepth 2 -mindepth 2 -name "SKILL.md" 2>/dev/null | xargs -I{} dirname {} | xargs -I{} basename {}
 done
 ```
 
-以表格形式展示结果，列出每个 skill 在哪些 agent 中已安装。示例：
+以表格形式展示结果。`共享` 列表示 `~/.agents/skills/`，该目录下的 skill 由 Gemini CLI 和 Codex 启动时自动加载。用 `~` 标注真实目录安装（非软链接管理）：
 
 ```
 已安装的 Skill：
 
-Skill 名称              Claude Code  Gemini CLI  Codex
-─────────────────────────────────────────────────────
-liubei                  ✓            ✓           —
-skill-kit               ✓            —           —
-anything-to-notebooklm  ✓            ✓           —
+Skill 名称              Claude Code  Gemini CLI  Codex  共享(~/.agents)
+───────────────────────────────────────────────────────────────────────
+liubei                  ✓            —           —      —
+skill-kit               ✓            —           —      —
+anything-to-notebooklm  ✓            ✓           ✓      —
+aihot                   ✓            —           —      ✓
+notebooklm              ✓            —           —      ~     ← ~ 表示真实目录，非软链接
 ```
+
+> `✓` = 软链接安装；`~` = 真实目录（非 skill-kit 管理，卸载需手动删除）；`—` = 未安装。
 
 ---
 
@@ -67,10 +77,11 @@ anything-to-notebooklm  ✓            ✓           —
    header: "目标 Agent"
    multiSelect: true
    options:
-     - label: "Claude Code",  description: "~/.claude/skills/"
-     - label: "Gemini CLI",   description: "~/.gemini/skills/"
-     - label: "Codex",        description: "~/.codex/skills/"
-     - label: "自定义路径",    description: "安装到其他 Agent 的 skills 目录（勾选后会追问路径）"
+     - label: "Claude Code",              description: "~/.claude/skills/"
+     - label: "Gemini CLI",               description: "~/.gemini/skills/"
+     - label: "Codex",                    description: "~/.codex/skills/"
+     - label: "共享（Gemini CLI + Codex）", description: "~/.agents/skills/，两个 agent 启动时均自动加载"
+     - label: "自定义路径",                description: "安装到其他 Agent 的 skills 目录（勾选后会追问路径）"
    ```
 
    注意：复选框无预选状态，用户需主动勾选目标 agent。勾选"自定义路径"后，用文字追问输入完整目录路径（支持多个，换行或逗号分隔）。
@@ -200,10 +211,11 @@ question: "从哪些 Agent 卸载？"
 header: "目标 Agent"
 multiSelect: true
 options:
-  - label: "Claude Code",  description: "~/.claude/skills/"
-  - label: "Gemini CLI",   description: "~/.gemini/skills/"
-  - label: "Codex",        description: "~/.codex/skills/"
-  - label: "自定义路径",    description: "其他 Agent 的 skills 目录（勾选后会追问路径）"
+  - label: "Claude Code",              description: "~/.claude/skills/"
+  - label: "Gemini CLI",               description: "~/.gemini/skills/"
+  - label: "Codex",                    description: "~/.codex/skills/"
+  - label: "共享（Gemini CLI + Codex）", description: "~/.agents/skills/"
+  - label: "自定义路径",                description: "其他 Agent 的 skills 目录（勾选后会追问路径）"
 ```
 
 勾选"自定义路径"后，用文字追问输入目录路径。
@@ -269,7 +281,7 @@ options:
 
 ```bash
 # 对每个软链接，检查目标目录是否有 .git
-for link in ~/.claude/skills/* ~/.gemini/skills/* ~/.codex/skills/*; do
+for link in ~/.claude/skills/* ~/.gemini/skills/* ~/.codex/skills/* ~/.agents/skills/*; do
   [ -L "$link" ] || continue
   target=$(readlink "$link")
   [ -d "$target/.git" ] && echo "git: $(basename $link) → $target"
