@@ -66,25 +66,9 @@ notebooklm              ✓            —           —      ~     ← ~ 表示
 
 ### 第一步：收集信息
 
-向用户确认两件事（用户已在请求中说明的直接采用，不用再问）：
+确认 **Skill 来源**：本地路径或 git 仓库 URL。（用户已在请求中说明的直接采用，不用再问。）
 
-1. **Skill 来源**：本地路径或 git 仓库 URL。
-
-2. **安装目标 Agent**：使用 `AskUserQuestion` 工具，以复选框形式让用户选择，`multiSelect: true`：
-
-   ```
-   question: "要安装到哪些 Agent？"
-   header: "目标 Agent"
-   multiSelect: true
-   options:
-     - label: "Claude Code",              description: "~/.claude/skills/"
-     - label: "Gemini CLI",               description: "~/.gemini/skills/"
-     - label: "Codex",                    description: "~/.codex/skills/"
-     - label: "共享（Gemini CLI + Codex）", description: "~/.agents/skills/，两个 agent 启动时均自动加载"
-     - label: "自定义路径",                description: "安装到其他 Agent 的 skills 目录（勾选后会追问路径）"
-   ```
-
-   注意：复选框无预选状态，用户需主动勾选目标 agent。勾选"自定义路径"后，用文字追问输入完整目录路径（支持多个，换行或逗号分隔）。
+> **注意**：安装目标 Agent 的询问延迟到第三步之后，等确认了要安装哪些 skill 再问。
 
 ### 第二步：获取 Skill 源码
 
@@ -112,7 +96,7 @@ ls <目录>/SKILL.md 2>/dev/null
 find <目录> -mindepth 2 -maxdepth 2 -name "SKILL.md" | xargs -I{} dirname {}
 ```
 
-**情况 A — 单一 Skill**：根目录有 `SKILL.md`，且子目录中**没有** `SKILL.md`。整个目录作为安装目标，进入第四步。
+**情况 A — 单一 Skill**：根目录有 `SKILL.md`，且子目录中**没有** `SKILL.md`。整个目录作为安装目标。用 `AskUserQuestion` 询问安装目标 Agent（`multiSelect: true`，选项同情况 B/C），然后进入第四步。
 
 **情况 B — Skill 集合**：根目录**无** `SKILL.md`，子目录有多个 `SKILL.md`。让用户从子 skill 中选择。
 
@@ -129,17 +113,44 @@ find <目录> -mindepth 2 -maxdepth 2 -name "SKILL.md" | xargs -I{} dirname {}
   ```
 - 用户选"安装整个集合"→ 同情况 A；选"从子 skill 中选择"→ 同情况 B。
 
-**情况 B / C 子 skill 选择**，用 `AskUserQuestion` 复选框，`multiSelect: true`：
+**情况 B / C 子 skill 选择**：
+
+- **子 Skill 数量 ≤ 4**：用 `AskUserQuestion` 复选框，`multiSelect: true`：
+  ```
+  question: "选择要安装的 Skill"
+  header: "选择 Skill"
+  multiSelect: true
+  options:
+    - label: "<skill目录名>", description: "<绝对路径>"
+    ...
+  ```
+
+- **子 Skill 数量 > 4**：`AskUserQuestion` 最多支持 4 个选项，改用文字列表展示：
+  ```
+  找到以下 Skill，请回复要安装的编号（多个用逗号隔开，或回复"全部"）：
+
+    1. <skill名> → <绝对路径>
+    2. <skill名> → <绝对路径>
+    ...
+  ```
+  等用户回复后，根据编号确定要安装的 skill 列表。
+
+**等用户选定 skill 后**，再用 `AskUserQuestion` 询问安装目标 Agent（`multiSelect: true`）：
+
 ```
-question: "选择要安装的 Skill"
-header: "选择 Skill"
+question: "要安装到哪些 Agent？"
+header: "目标 Agent"
 multiSelect: true
 options:
-  - label: "<skill目录名>", description: "<绝对路径>"
-  - label: "<skill目录名>", description: "<绝对路径>"
-  ...（每个子 skill 一个 option）
+  - label: "Claude Code",              description: "~/.claude/skills/"
+  - label: "Gemini CLI",               description: "~/.gemini/skills/"
+  - label: "Codex",                    description: "~/.codex/skills/"
+  - label: "共享（Gemini CLI + Codex）", description: "~/.agents/skills/，两个 agent 启动时均自动加载"
 ```
-等用户选择后，进入第四步。
+
+注意：复选框无预选状态，用户需主动勾选目标 agent。若用户需要安装到自定义路径，用文字追问完整目录路径。
+
+然后进入第四步。
 
 ### 第四步：生成安装计划
 
