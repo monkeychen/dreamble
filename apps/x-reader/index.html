@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>x-reader 沉浸阅读器</title>
+    <!-- 全局样式 -->
+    <link rel="stylesheet" href="/src/theme/style.css" />
+  </head>
+  <body class="theme-github">
+    <div id="app">
+      <!-- 1. 浮动顶部栏 (面包屑导航与退出) -->
+      <header class="floating-header" id="header-bar">
+        <div class="doc-info">
+          <span class="doc-icon" id="header-doc-icon">📄</span>
+          <span class="doc-name" id="header-doc-name">未加载文件</span>
+        </div>
+        <button class="icon-btn" id="btn-close-doc" title="退出阅读">✕</button>
+      </header>
+
+      <!-- 2. 核心内容阅读区 -->
+      <main id="reader-content">
+        <!-- 默认欢迎画面 -->
+        <div class="welcome-screen" id="welcome-area">
+          <div class="welcome-logo">📖</div>
+          <h1 class="welcome-title">x-reader 沉浸式阅读器</h1>
+          <p class="welcome-subtitle">
+            在微信中点击“用其他应用打开”，即可享受无缝的精美渲染与永久本地安全备份。
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button class="welcome-btn" id="btn-mock-md">📝 示例 Markdown</button>
+            <button class="welcome-btn" id="btn-mock-json" style="background-color: var(--text-secondary);">⚙️ 示例 JSON</button>
+            <button class="welcome-btn" id="btn-mock-log" style="background-color: var(--accent-hover);">🚨 示例 LOG</button>
+            <label class="welcome-btn" style="background-color: #6a737d; cursor: pointer; display: inline-flex; align-items: center;">
+              📂 选择本地文件
+              <input type="file" id="file-selector" style="display: none;" accept=".html,.htm,.md,.markdown,.json,.log,.txt,text/*,*/*" />
+            </label>
+          </div>
+        </div>
+        
+        <!-- 动态渲染的文档容器 -->
+        <div id="doc-render-body"></div>
+      </main>
+
+      <!-- 3. 悬浮底座控制栏 -->
+      <div class="floating-dock" id="floating-dock-bar">
+        <button class="icon-btn" id="btn-toggle-toc" title="目录大纲">☰</button>
+        <div style="width: 1px; height: 20px; background-color: var(--border-color); margin: 0 0.2rem;"></div>
+        <!-- 快捷主题切换 -->
+        <div class="theme-indicator indicator-github" data-theme="github" title="经典白"></div>
+        <div class="theme-indicator indicator-sspai" data-theme="sspai" title="少数派"></div>
+        <div class="theme-indicator indicator-wood" data-theme="wood" title="木纹纸"></div>
+        <div class="theme-indicator indicator-dark" data-theme="dark" title="护眼暗"></div>
+      </div>
+
+      <!-- 4. 侧边大纲抽屉 -->
+      <div class="drawer-overlay" id="drawer-overlay-mask"></div>
+      <aside class="toc-drawer" id="toc-drawer-panel">
+        <div class="toc-header">
+          <span class="toc-title">文档大纲</span>
+          <button class="icon-btn" id="btn-close-toc">✕</button>
+        </div>
+        <ul class="toc-list" id="toc-links-container">
+          <!-- 动态注入的大纲目录 -->
+          <li class="toc-item toc-h1">无目录结构</li>
+        </ul>
+      </aside>
+    </div>
+
+    <!-- 应用程序核心逻辑 -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
