@@ -3,6 +3,7 @@ import { MarkdownParser } from './markdownParser';
 import { JsonParser } from './jsonParser';
 import { LogParser } from './logParser';
 import { TxtParser } from './txtParser';
+import { CodeParser } from './codeParser';
 
 /**
  * 统一多格式分发解析引擎
@@ -38,6 +39,39 @@ export class DocumentParser {
         return {
           html: LogParser.parse(rawContent),
           type: 'log'
+        };
+      case 'js':
+      case 'javascript':
+        return {
+          html: CodeParser.parse(rawContent, 'javascript'),
+          type: 'javascript'
+        };
+      case 'py':
+      case 'python':
+        return {
+          html: CodeParser.parse(rawContent, 'python'),
+          type: 'python'
+        };
+      case 'java':
+        return {
+          html: CodeParser.parse(rawContent, 'java'),
+          type: 'java'
+        };
+      case 'xml':
+        return {
+          html: CodeParser.parse(rawContent, 'xml'),
+          type: 'xml'
+        };
+      case 'yml':
+      case 'yaml':
+        return {
+          html: CodeParser.parse(rawContent, 'yaml'),
+          type: 'yaml'
+        };
+      case 'properties':
+        return {
+          html: CodeParser.parse(rawContent, 'properties'),
+          type: 'properties'
         };
       case 'txt':
       default:
