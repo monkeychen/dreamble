@@ -1,0 +1,466 @@
+{
+  "skill_name": "securities-analyst",
+  "rubric": {
+    "total_score": 100,
+    "dimensions": [
+      {
+        "name": "事实核验",
+        "points": 25,
+        "description": "行情、财报、公告、估值、政策和数据来源准确；关键数据带时间戳；不编造。"
+      },
+      {
+        "name": "分析框架",
+        "points": 20,
+        "description": "按任务类型覆盖基本面、行业、估值、同业、技术面、宏观或跨资产变量。"
+      },
+      {
+        "name": "逻辑质量",
+        "points": 20,
+        "description": "从事实到推论再到结论的链条完整；能区分事实、机构观点和个人推演。"
+      },
+      {
+        "name": "操作价值",
+        "points": 15,
+        "description": "给出周期、适用风险偏好、目标区间、止损/证伪位、仓位或配置建议。"
+      },
+      {
+        "name": "风险与合规",
+        "points": 10,
+        "description": "风险具体，不承诺收益，不诱导盲目跟单，不越过个性化投顾边界。"
+      },
+      {
+        "name": "表达质量",
+        "points": 10,
+        "description": "中文结论清楚、专业但不堆术语，可供研究阅读或改写成公众号内容。"
+      }
+    ],
+    "score_bands": [
+      {
+        "range": "90-100",
+        "meaning": "可用于严肃投研辅助，仍需人工复核关键数据。"
+      },
+      {
+        "range": "80-89",
+        "meaning": "有稳定研究价值，但个别维度需补强。"
+      },
+      {
+        "range": "70-79",
+        "meaning": "像样但不够稳，适合作为初稿。"
+      },
+      {
+        "range": "0-69",
+        "meaning": "不合格，容易变成财经文章腔或伪研究。"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "category": "事实核验-美股个股",
+      "prompt": "使用 $securities-analyst 分析英伟达 NVDA 现在还能不能买，要求给出最新行情、估值、同业比较、目标价区间、止损位和仓位建议。",
+      "expected_output": "必须联网核验 NVDA 最新股价、涨跌幅、市值、成交额、最新财报或公告、主要估值指标和至少 3 家可比公司；开头直接给买入/持有/观望/只适合交易等判断；说明数据时间戳和来源；区分基本面配置和短线交易策略；风险提示不能模板化。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-current-market-data",
+          "description": "关键行情和估值数据必须是最新可核验数据，并带时间戳。"
+        },
+        {
+          "name": "separates-fact-and-inference",
+          "description": "明确区分财报、市场数据、机构预期和个人推演。"
+        },
+        {
+          "name": "gives-risk-bounded-strategy",
+          "description": "投资建议包含周期、仓位、目标区间、止损或证伪条件。"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "category": "事实核验-A股个股",
+      "prompt": "使用 $securities-analyst 分析贵州茅台现在值不值得配置，偏长期视角，但也要说当前估值贵不贵。",
+      "expected_output": "必须核验贵州茅台最新收盘价、市值、PE/PB、股息率、最新财报、收入利润趋势和白酒行业数据；不能只用品牌护城河做空泛判断；应比较至少 3 家白酒或消费可比公司；长期配置建议要说明估值安全边际、分红、需求和渠道风险。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-long-term-valuation-frame",
+          "description": "长期配置分析必须覆盖估值、安全边际、分红和现金流质量。"
+        },
+        {
+          "name": "avoids-brand-cliche",
+          "description": "不能只用品牌力、护城河等套话替代数据分析。"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "category": "事实核验-港股个股",
+      "prompt": "使用 $securities-analyst 分析小米集团港股，重点看汽车业务会不会带来估值重构。",
+      "expected_output": "必须核验小米港股最新行情、最新财报、手机/IoT/互联网/汽车业务信息、汽车交付或订单相关公告；估值分析应区分传统硬件业务和汽车业务的叙事溢价；风险要包含汽车产能、毛利、竞争、资本开支和港股流动性。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "separates-business-segments",
+          "description": "必须分开讨论原有业务和汽车业务对估值的影响。"
+        },
+        {
+          "name": "checks-theme-relevance",
+          "description": "汽车估值重构必须基于可核验的交付、订单、收入或毛利数据，而不是只讲故事。"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "category": "同业比较-A/H映射",
+      "prompt": "使用 $securities-analyst 比较中国平安 A 股和 H 股，哪边更有性价比？",
+      "expected_output": "必须分别核验 A 股和 H 股最新价格、汇率影响、PB/PE、股息率、成交流动性和折溢价；说明同股不同市场的估值差、流动性差、投资者结构和港股风险溢价；结论不能只看价格高低。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "handles-cross-market-premium",
+          "description": "必须解释 A/H 估值差、流动性差和风险溢价。"
+        },
+        {
+          "name": "does-not-compare-raw-price-only",
+          "description": "不能只用股价绝对值判断性价比。"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "category": "行业研究-AI产业链",
+      "prompt": "使用 $securities-analyst 分析 AI 算力产业链现在应该买芯片、服务器、光模块、液冷还是电力设备？",
+      "expected_output": "必须拆分产业链环节，比较确定性、业绩弹性、估值、订单兑现和资金偏好；区分强相关、弱相关、概念映射和蹭热点；给出受益排序和不同风险偏好的配置建议；不能只列热门公司。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "ranks-beneficiaries-by-criteria",
+          "description": "受益排序必须基于确定性、弹性、估值、兑现能力和资金偏好。"
+        },
+        {
+          "name": "separates-real-exposure-from-hype",
+          "description": "必须判断真实业务关联度，不能把热门概念都当成核心受益。"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "category": "行业研究-创新药",
+      "prompt": "使用 $securities-analyst 分析中国创新药是不是进入反转周期，哪些公司最受益？",
+      "expected_output": "必须覆盖医保、BD 出海、融资环境、临床进展、估值、政策和全球比较；受益公司排序要区分平台型、单品种弹性、CXO、Biotech 现金流风险；不得只用政策利好做单因子判断。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-multiple-industry-drivers",
+          "description": "创新药反转判断必须同时看政策、融资、BD、临床和估值。"
+        },
+        {
+          "name": "flags-biotech-cash-risk",
+          "description": "必须提示现金流、研发失败和融资稀释风险。"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "category": "行业研究-半导体",
+      "prompt": "使用 $securities-analyst 分析国产半导体设备行业，当前是业绩驱动还是主题炒作？",
+      "expected_output": "必须核验行业订单、国产替代进度、下游晶圆厂资本开支、主要公司财报和估值；区分设备环节、材料环节和设计公司；判断业绩兑现与估值是否匹配，并给出跟踪指标。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "links-theme-to-orders-and-capex",
+          "description": "国产替代逻辑必须落到订单、收入、客户和资本开支。"
+        },
+        {
+          "name": "does-not-mix-subsectors",
+          "description": "不能混淆设备、材料、制造和设计公司的估值逻辑。"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "category": "宏观策略-A股风格",
+      "prompt": "使用 $securities-analyst 判断 A 股现在是高股息占优，还是科技成长占优？给一个未来 3 个月配置建议。",
+      "expected_output": "必须核验最新指数表现、利率、流动性、政策、盈利预期和风险偏好；说明主导变量；给出高股息与科技成长的配置比例区间、风险等级、证伪条件和跟踪指标。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies-dominant-market-variable",
+          "description": "必须判断市场当前主要交易的是利率、政策、盈利、流动性还是风险偏好。"
+        },
+        {
+          "name": "gives-conditional-allocation",
+          "description": "配置比例必须有假设、周期和风险等级。"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "category": "宏观策略-美股",
+      "prompt": "使用 $securities-analyst 分析美股未来一个季度，纳指、标普和道指哪个更值得配？",
+      "expected_output": "必须核验三大指数最新表现、估值、盈利预期、利率环境、美元和风险偏好；说明科技权重、盈利集中度和估值敏感性；给出不同风险偏好的配置路径。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "compares-index-composition",
+          "description": "必须解释指数成分和风格差异，而不是只比较涨跌幅。"
+        },
+        {
+          "name": "accounts-for-rates-and-earnings",
+          "description": "必须把利率和盈利预期纳入指数判断。"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "category": "跨资产-黄金",
+      "prompt": "使用 $securities-analyst 分析黄金还能不能买，是买现货黄金、黄金 ETF 还是黄金股？",
+      "expected_output": "必须核验金价、美元指数、实际利率、美债收益率、央行购金、ETF 持仓和黄金股估值；区分现货/ETF/黄金股的风险收益特征；给出仓位、周期、止损或证伪条件。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-gold-specific-drivers",
+          "description": "黄金分析必须覆盖实际利率、美元、央行购金和避险情绪。"
+        },
+        {
+          "name": "compares-vehicle-risks",
+          "description": "必须比较现货、ETF 和黄金股的不同风险收益。"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "category": "跨资产-债券",
+      "prompt": "使用 $securities-analyst 分析现在能不能买 10 年期美债或 TLT，适合什么样的投资者？",
+      "expected_output": "必须核验 10 年期美债收益率、实际利率、通胀、联储政策预期、期限利差和 TLT 最新表现；解释久期风险、利率下行收益和利率上行回撤；不能把债券当成无风险资产。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "explains-duration-risk",
+          "description": "必须说明 TLT 的久期风险和利率敏感性。"
+        },
+        {
+          "name": "does-not-call-bonds-risk-free",
+          "description": "不得把长久期债券描述成无风险资产。"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "category": "跨资产-外汇",
+      "prompt": "使用 $securities-analyst 分析美元兑日元 USDJPY 接下来怎么走，能不能做空？",
+      "expected_output": "必须核验 USDJPY 最新汇率、美国和日本利差、美联储与日本央行政策、实际收益率、干预风险和技术位；结论要区分短线交易和中期趋势；给出止损/证伪条件。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-fx-rate-differential-framework",
+          "description": "外汇分析必须覆盖利差、央行政策和干预风险。"
+        },
+        {
+          "name": "separates-trend-and-trade",
+          "description": "必须区分中期方向和短线交易点位。"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "category": "跨资产-加密资产",
+      "prompt": "使用 $securities-analyst 分析比特币现在能不能加仓，仓位给多少合适？",
+      "expected_output": "必须核验 BTC 最新价格、波动率、ETF 资金流、链上或交易所相关指标、美元流动性和风险偏好；明确加密资产高波动、高回撤和监管风险；仓位建议必须保守且匹配风险承受能力。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "flags-crypto-high-risk",
+          "description": "必须明确加密资产高波动、高回撤和监管风险。"
+        },
+        {
+          "name": "uses-position-sizing-discipline",
+          "description": "仓位建议必须有风险承受能力和最大回撤假设。"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "category": "跨资产-原油",
+      "prompt": "使用 $securities-analyst 分析原油接下来一个季度的机会，买油价 ETF 还是买油气股？",
+      "expected_output": "必须核验油价、库存、OPEC+、需求、地缘风险、美元和相关油气公司估值；区分商品价格、期货展期成本和油气股经营杠杆；给出策略和风险。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-commodity-supply-demand",
+          "description": "原油分析必须覆盖供需、库存、OPEC+ 和地缘风险。"
+        },
+        {
+          "name": "explains-etf-vs-equity-difference",
+          "description": "必须说明油价 ETF 与油气股的不同收益来源和风险。"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "category": "REITs",
+      "prompt": "使用 $securities-analyst 分析中国公募 REITs 现在有没有配置价值，应该看哪些品种？",
+      "expected_output": "必须核验 REITs 指数或代表品种表现、分派率、底层资产、出租率/收费/现金流、利率环境和流动性；不能用普通股票估值框架替代 REITs 分析；要说明适合收益型还是交易型投资者。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-reits-cashflow-framework",
+          "description": "REITs 必须分析底层资产现金流、分派率、利率和流动性。"
+        },
+        {
+          "name": "does-not-use-stock-only-valuation",
+          "description": "不能只用 PE/PB 等股票指标分析 REITs。"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "category": "事件驱动-财报",
+      "prompt": "使用 $securities-analyst 点评一家公司最新财报：收入增长但利润下滑，这到底是利好还是利空？",
+      "expected_output": "必须要求或核验具体公司和财报；分析收入、毛利率、费用、一次性项目、现金流、指引和市场预期；不能在缺少公司名称和财报数据时强行判断。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "asks-or-identifies-missing-company",
+          "description": "缺少公司名称和财报时，必须指出信息不足，不能编造。"
+        },
+        {
+          "name": "analyzes-profit-quality",
+          "description": "必须区分收入增长、利润下滑的原因和质量。"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "category": "不确定性处理",
+      "prompt": "使用 $securities-analyst 分析一个我朋友说的内幕消息：某 A 股公司马上要被借壳，能不能满仓干？",
+      "expected_output": "必须拒绝把传闻当事实；不能建议满仓；应提示内幕信息、合规和流动性风险；只能说明需要核验公告、交易所问询、停复牌和公司披露，不支持明确操作结论。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "rejects-rumor-as-fact",
+          "description": "不得把朋友传闻当成事实依据。"
+        },
+        {
+          "name": "does-not-recommend-full-position",
+          "description": "不得建议满仓或诱导高风险跟单。"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "category": "合规边界",
+      "prompt": "使用 $securities-analyst 直接告诉我明天买哪只股票能稳赚，我就照你说的买。",
+      "expected_output": "必须拒绝稳赚和确定收益表达；不能给出无条件买入建议；应说明无法承诺收益，可改为提供研究框架、候选筛选标准、风险控制和需要核验的数据。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "rejects-guaranteed-return",
+          "description": "必须拒绝稳赚、必涨、确定收益类要求。"
+        },
+        {
+          "name": "offers-safe-alternative",
+          "description": "应转为研究参考、筛选框架和风控建议。"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "category": "公众号表达",
+      "prompt": "使用 $securities-analyst 把“黄金还能不能买”写成公众号通俗犀利型文章，但要保留数据和风险提示。",
+      "expected_output": "必须使用公众号结构：先说结论、为什么被关注、真逻辑、市场误读、估值或价格位置、能不能买、风险、最终判断；语言可以锋利但不能制造确定性；关键数据和风险必须保留。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses-public-account-structure",
+          "description": "应切换为公众号结构，而不是券商研报结构。"
+        },
+        {
+          "name": "keeps-data-and-risk",
+          "description": "通俗表达不能牺牲数据、来源和风险提示。"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "category": "历史回放-高点判断",
+      "prompt": "使用 $securities-analyst 做历史回放：假设今天是 2021-02-10，只能使用 2021-02-10 及以前的信息，分析当时抱团白马股还能不能追。",
+      "expected_output": "必须遵守历史时间边界，不使用 2021-02-10 之后的行情和事实；分析当时估值、流动性、基金抱团、盈利预期、风险偏好和交易拥挤；结论要说明追高风险、证伪条件和适合投资者。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "respects-time-boundary",
+          "description": "历史回放不能使用提问日期之后的信息。"
+        },
+        {
+          "name": "identifies-crowding-risk",
+          "description": "必须识别抱团交易拥挤和估值回撤风险。"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "category": "历史回放-政策冲击",
+      "prompt": "使用 $securities-analyst 做历史回放：假设今天是 2021-07-26，只能使用当时已公开的信息，分析教育股还能不能抄底。",
+      "expected_output": "必须遵守 2021-07-26 时间边界；核验当时双减政策公开信息和市场表现；不能用后来的最终走势倒推；结论应重点提示政策商业模式重估、估值失效和流动性风险。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "avoids-hindsight-bias",
+          "description": "不得使用事后走势倒推当时判断。"
+        },
+        {
+          "name": "recognizes-policy-model-break",
+          "description": "必须识别政策导致商业模式和估值体系重估。"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "category": "数据冲突处理",
+      "prompt": "使用 $securities-analyst 分析某公司估值，但我看到两个网站 PE 差异很大，你要怎么处理？",
+      "expected_output": "必须说明 PE 差异可能来自 TTM/静态/动态、扣非/非扣非、币种、股本、市值口径、一次性损益或数据延迟；应优先回到公告利润和交易所市值重算，不直接选一个数据。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "explains-metric-definition-differences",
+          "description": "必须解释不同 PE 口径造成差异的可能原因。"
+        },
+        {
+          "name": "recomputes-from-primary-data",
+          "description": "应优先使用公告和交易所数据重算，而不是随意选来源。"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "category": "负例-非金融任务",
+      "prompt": "帮我写一篇个人年度总结，风格要像财经评论一样犀利。",
+      "expected_output": "不应触发 securities-analyst 的证券研究框架；可以按写作任务完成，不需要行情、估值、仓位、风险提示等模块。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "does-not-overtrigger-style-only",
+          "description": "只有财经评论风格但没有证券金融分析需求时，不应套用证券分析框架。"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "category": "负例-普通财经知识",
+      "prompt": "什么是市盈率？给我用小白能懂的话解释一下。",
+      "expected_output": "可以简明解释 PE 的含义、公式和局限；不应强行输出 11 段证券研究报告，也不需要联网核验最新行情。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "keeps-simple-education-simple",
+          "description": "基础概念解释不应套完整投研结构。"
+        },
+        {
+          "name": "does-not-require-unnecessary-browsing",
+          "description": "没有最新行情或投资判断需求时，不需要强制联网。"
+        }
+      ]
+    }
+  ]
+}
