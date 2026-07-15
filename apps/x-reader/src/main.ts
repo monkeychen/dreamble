@@ -2,7 +2,8 @@ import { DocumentParser } from './parser';
 import { MOCK_MD, MOCK_JSON, MOCK_LOG } from './components/MockData';
 import { ThemeManager } from './components/ThemeManager';
 import { TOCManager } from './components/TOCManager';
-import { initCapacitorBridge, exitApp } from './components/CapacitorBridge';
+import { initCapacitorBridge, exitApp, getCachedDocuments, readCachedDocument, deleteCachedDocument } from './components/CapacitorBridge';
+
 
 // ==========================================================================
 // 🚀 核心应用程序管理器
@@ -16,6 +17,9 @@ class XReaderApp {
   private docNameSpan = document.getElementById('header-doc-name')!;
   private docIconSpan = document.getElementById('header-doc-icon')!;
   private fileSelector = document.getElementById('file-selector') as HTMLInputElement;
+
+  private historyPanel = document.getElementById('history-panel')!;
+  private historyList = document.getElementById('history-list')!;
 
   // 状态变量
   private controlsVisible = false;
@@ -31,7 +35,11 @@ class XReaderApp {
     
     this.initEvents();
     this.initMockButtons();
-    initCapacitorBridge(this.loadDocument.bind(this));
+    initCapacitorBridge((fileName, rawContent) => {
+      this.loadDocument(fileName, rawContent);
+      this.updateHistoryList();
+    });
+    this.updateHistoryList();
   }
 
   /**
@@ -151,6 +159,77 @@ class XReaderApp {
     this.hideControls();
     this.tocManager.close();
     this.fileSelector.value = ''; // 重置文件选择器
+    this.updateHistoryList(); // 返回欢迎屏时，刷新历史记录
+  }
+
+  /**
+   * 从沙盒中读取永久备份的文档并更新主页面列表
+   */
+  private async updateHistoryList() {
+    const cachedDocs = await getCachedDocuments();
+    if (cachedDocs && cachedDocs.length > 0) {
+      this.historyPanel.style.display = 'block';
+      this.historyList.innerHTML = '';
+      
+      cachedDocs.forEach((doc) => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        
+        const timeStr = new Date(doc.mtime).toLocaleDateString('zh-CN', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const sizeStr = doc.size > 1024 * 1024 
+          ? `${(doc.size / (1024 * 1024)).toFixed(1)} MB` 
+          : `${(doc.size / 1024).toFixed(1)} KB`;
+        
+        item.innerHTML = `
+          <div class="history-item-info">
+            <span class="history-item-name">${doc.name}</span>
+            <div class="history-item-meta">
+              <span>🕒 ${timeStr}</span>
+              <span>💾 ${sizeStr}</span>
+            </div>
+          </div>
+          <button class="history-delete-btn" title="删除备份">✕</button>
+        `;
+        
+        // 点击卡片本身：读取并载入文档
+        item.addEventListener('click', async (e) => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains('history-delete-btn')) {
+            return;
+          }
+          
+          try {
+            const rawContent = await readCachedDocument(doc.name);
+            this.loadDocument(doc.name, rawContent);
+          } catch (err: any) {
+            alert(`无法读取缓存文件: ${err.message}`);
+          }
+        });
+        
+        // 点击删除按钮
+        item.querySelector('.history-delete-btn')!.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm(`确定要彻底删除该文档的本地备份吗？\n${doc.name}`)) {
+            const success = await deleteCachedDocument(doc.name);
+            if (success) {
+              this.updateHistoryList();
+            } else {
+              alert('删除失败，请稍后重试。');
+            }
+          }
+        });
+        
+        this.historyList.appendChild(item);
+      });
+    } else {
+      this.historyPanel.style.display = 'none';
+      this.historyList.innerHTML = '';
+    }
   }
 
   /**
