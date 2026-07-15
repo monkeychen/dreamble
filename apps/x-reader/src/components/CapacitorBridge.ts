@@ -186,9 +186,9 @@ export async function exitApp() {
   try {
     // @ts-ignore
     const { App } = await import('@capacitor/app');
-    App.exitApp();
+    await App.exitApp();
   } catch (e) {
-    console.log('Running in browser context. Cannot exit app.');
+    console.log('Running in browser context. Cannot exit app.', e);
     alert('当前处于 Web 预览环境，请使用浏览器的关闭窗口功能。');
   }
 }
