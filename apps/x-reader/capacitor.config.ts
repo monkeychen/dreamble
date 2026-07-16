@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.chenzhian.xreader',
+  appId: 'com.simiam.xreader',
   appName: 'x-reader',
   webDir: 'dist'
 };
