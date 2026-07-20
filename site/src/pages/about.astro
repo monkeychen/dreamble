@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import { Content as AboutContent, frontmatter } from '../../content/about.md';
+---
+
+<Base title={`${frontmatter.title} · 聊哉梦呓`}>
+  <article>
+    <h1 class="page-title">{frontmatter.title}</h1>
+    <AboutContent />
+  </article>
+</Base>

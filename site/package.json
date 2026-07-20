@@ -1,0 +1,23 @@
+{
+  "name": "dreamble-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test",
+    "import": "node scripts/import-wechat.mjs",
+    "publish": "bash scripts/publish.sh"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@fontsource/noto-serif-sc": "^5.0.8",
+    "astro": "^7.1.0"
+  },
+  "devDependencies": {
+    "cheerio": "^1.2.0",
+    "turndown": "^7.2.4"
+  }
+}

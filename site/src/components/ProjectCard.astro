@@ -1,0 +1,23 @@
+---
+import { Image } from 'astro:assets';
+import { projectSlug } from '../lib/helpers.mjs';
+
+const { project } = Astro.props;
+const slug = projectSlug(project.id);
+const hasDetail = Boolean(project.body?.trim());
+---
+
+<li class="card">
+  {project.data.status === 'archived' && <span class="badge-archived">已归档</span>}
+  {project.data.cover && <Image class="cover" src={project.data.cover} alt={project.data.name} />}
+  <h3>
+    {hasDetail ? <a href={`/projects/${slug}/`}>{project.data.name}</a> : project.data.name}
+  </h3>
+  <p class="tagline">{project.data.tagline}</p>
+  <p class="links">
+    {project.data.links.download && <a href={project.data.links.download}>下载</a>}
+    {project.data.links.repo && <a href={project.data.links.repo}>源码</a>}
+    {project.data.links.website && <a href={project.data.links.website}>网站</a>}
+    {hasDetail && <a href={`/projects/${slug}/`}>详情 →</a>}
+  </p>
+</li>

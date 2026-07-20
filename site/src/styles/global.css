@@ -1,0 +1,259 @@
+/* ── 「旧杂志」主题 ── 配色：纸色（日间）/ 夜读（暗色） ── */
+:root {
+  color-scheme: light dark;
+  --bg: #f6f0e3;
+  --fg: #3a3226;
+  --muted: #756750;
+  --accent: #9c4526;
+  --border: #e2d7c0;
+  --card-bg: #faf5ea;
+  --max-width: 50rem;
+  --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --kai: "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif SC", serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #211c15;
+    --fg: #d9cfba;
+    --muted: #948a76;
+    --accent: #cf8a58;
+    --border: #3a332a;
+    --card-bg: #2a241b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.9;
+}
+
+/* ── 刊头 ── */
+header.site {
+  text-align: center;
+  padding: 2.2rem 1rem 0;
+}
+header.site .brand {
+  display: inline-block;
+  font-weight: 900;
+  font-size: 2rem;
+  letter-spacing: 0.35em;
+  margin-right: -0.35em;
+  color: var(--fg);
+  text-decoration: none;
+}
+header.site nav.menu {
+  max-width: var(--max-width);
+  margin: 0.9rem auto 0;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  gap: 2.2rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+}
+header.site nav.menu a { color: var(--fg); text-decoration: none; }
+header.site nav.menu a:hover { color: var(--accent); }
+
+/* ── 正文区 ── */
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+a { color: var(--accent); }
+/* 下划线仅用于文章/正文内容内的链接；目录、卡片等功能性链接不画线（杂志目录惯例） */
+article a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+}
+article a:hover { color: var(--accent); }
+/* 作品详情页的功能链接（下载/源码/网站）是按钮不是正文引用 */
+article .links a { color: var(--accent); text-decoration: none; }
+
+h1, h2, h3 { line-height: 1.4; font-weight: 700; }
+
+.page-title {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.2em;
+  margin: 0 0 1.6rem;
+}
+
+section > h2 {
+  text-align: center;
+  font-size: 1.15rem;
+  letter-spacing: 0.15em;
+  margin: 0 0 1rem;
+}
+h2 .more { font-size: 0.8rem; font-weight: 400; letter-spacing: 0.05em; margin-left: 0.6rem; text-decoration: none; }
+
+/* 刊首语 / 花式分隔符 */
+.foreword {
+  font-family: var(--kai);
+  text-align: center;
+  color: var(--muted);
+  max-width: 30rem;
+  margin: 0 auto 1rem;
+}
+.fleuron {
+  text-align: center;
+  color: var(--muted);
+  letter-spacing: 0.5em;
+  margin: 2.2rem 0;
+}
+
+/* ── 目录式文章列表（dot leaders） ── */
+ul.post-list { list-style: none; padding: 0; margin: 0; }
+ul.post-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  padding: 0.45rem 0;
+}
+ul.post-list li > a { color: var(--fg); text-decoration: none; }
+ul.post-list li > a:hover { color: var(--accent); }
+ul.post-list .leader {
+  flex: 1;
+  min-width: 2em;
+  border-bottom: 1px dotted var(--muted);
+  transform: translateY(-0.25em);
+}
+ul.post-list time {
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* 归档年份章节 */
+.year-head { display: flex; align-items: center; gap: 1rem; margin: 2.4rem 0 0.6rem; }
+.year-head h2 { margin: 0; font-size: 1.5rem; letter-spacing: 0.1em; }
+.year-head::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
+
+/* ── 文章页 ── */
+article > h1 { text-align: center; font-size: 1.7rem; margin: 0 0 0.4rem; }
+article .meta {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 2.5rem;
+}
+article img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* 首段首字下沉（仅文章详情页 .prose 容器内） */
+.prose > p:first-child::first-letter {
+  float: left;
+  font-size: 3.2em;
+  line-height: 1;
+  padding: 0.08em 0.12em 0 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 公众号「印章」标注 */
+.stamp {
+  display: inline-block;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  color: var(--accent);
+  padding: 0 0.4em;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  margin-left: 0.5em;
+}
+
+/* 引用排楷体 */
+blockquote {
+  margin: 1.6rem 0;
+  padding: 0.2rem 1.2rem;
+  border-left: 2px solid var(--accent);
+  font-family: var(--kai);
+  color: var(--muted);
+}
+
+/* 代码 */
+pre {
+  overflow-x: auto;
+  padding: 1rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.82em;
+  line-height: 1.7;
+}
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+:not(pre) > code {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 0.3em;
+  font-size: 0.85em;
+}
+
+/* ── 作品纸片卡 ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.1rem 1.25rem;
+  background: var(--card-bg);
+}
+.card h3 { margin: 0 0 0.3rem; font-size: 1.05rem; }
+.card h3 a { color: var(--fg); text-decoration: none; }
+.card h3 a:hover { color: var(--accent); }
+.card .tagline { color: var(--muted); margin: 0 0 0.7rem; font-size: 0.9rem; }
+.card .links { display: flex; gap: 1rem; font-size: 0.85rem; margin: 0; }
+.card .links a { color: var(--accent); text-decoration: none; }
+.card .cover { width: 100%; height: auto; border-radius: 4px; margin-bottom: 0.7rem; border: 1px solid var(--border); }
+.card .badge-archived {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--muted);
+  padding: 0 0.35em;
+  font-size: 0.7rem;
+}
+
+/* ── 版权页 ── */
+footer.site {
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 1.8rem 1rem 2.4rem;
+}
+footer.site a { color: var(--muted); text-decoration: none; }
+footer.site a:hover { color: var(--accent); }
+footer.site p { margin: 0.35rem 0; }
+footer.site .beian img { vertical-align: -2px; margin-right: 2px; }

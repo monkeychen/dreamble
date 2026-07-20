@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { projectSlug } from '../../lib/helpers.mjs';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects
+    .filter((p) => p.body?.trim())
+    .map((project) => ({ params: { slug: projectSlug(project.id) }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const { links } = project.data;
+---
+
+<Base title={`${project.data.name} · 聊哉梦呓`} description={project.data.tagline}>
+  <article>
+    <h1>{project.data.name}</h1>
+    <p class="meta">{project.data.tagline}</p>
+    <p class="links">
+      {links.download && <a href={links.download}>下载</a>}
+      {links.repo && <a href={links.repo}>源码</a>}
+      {links.website && <a href={links.website}>网站</a>}
+    </p>
+    <Content />
+  </article>
+</Base>

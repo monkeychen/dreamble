@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) =>
+    Number(a.data.status === 'archived') - Number(b.data.status === 'archived') ||
+    a.data.order - b.data.order
+);
+---
+
+<Base title="作品 · 聊哉梦呓" description="安哥开发的工具软件">
+  <h1 class="page-title">作品</h1>
+  <ul class="cards">
+    {projects.map((project) => <ProjectCard project={project} />)}
+  </ul>
+  {projects.length === 0 && <p>还没有作品。</p>}
+</Base>

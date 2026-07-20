@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <style>
+    .bg { fill: #f6f0e3; }
+    .fg { fill: #9c4526; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #211c15; }
+      .fg { fill: #cf8a58; }
+    }
+  </style>
+  <rect class="bg" width="100" height="100" rx="22"/>
+  <text class="fg" x="50" y="74" text-anchor="middle"
+        font-family="'Songti SC','STSong','SimSun',serif" font-size="62" font-weight="700">聊</text>
+</svg>

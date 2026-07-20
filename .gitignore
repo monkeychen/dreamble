@@ -65,3 +65,22 @@ tmp/
 images/
 outputs/
 .superpowers/
+
+# ==========================================
+# dreamble-site
+# ==========================================
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# deploy config (server address etc. — never commit)
+.deploy.env
+
+# misc
+.DS_Store
+
+# astro
+.astro/
+

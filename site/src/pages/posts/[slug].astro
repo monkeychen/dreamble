@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { postSlug } from '../../lib/helpers.mjs';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: postSlug(post.id) }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const dateStr = post.data.date.toISOString().slice(0, 10);
+---
+
+<Base
+  title={`${post.data.title} · 聊哉梦呓`}
+  description={post.data.summary ?? post.data.title}
+  noindex={post.data.visibility === 'unlisted'}
+>
+  <article>
+    <h1>{post.data.title}</h1>
+    <p class="meta">
+      <time datetime={dateStr}>{dateStr.replaceAll('-', ' · ')}</time>
+      {post.data.tags.length > 0 && <span> · {post.data.tags.join(' / ')}</span>}
+      {post.data.source === 'wechat' && <span class="stamp">首发于公众号「聊哉梦呓」</span>}
+    </p>
+    <div class="prose"><Content /></div>
+  </article>
+</Base>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>x-reader 隐私政策 (Privacy Policy)</title>
+  <style>
+    :root {
+      --bg-primary: #121214;
+      --text-primary: #e3e3e6;
+      --text-secondary: #a1a1a8;
+      --accent: #3b82f6;
+      --border: #2d2d34;
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1, h2 { color: #fff; margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.3rem; margin-top: 2.5rem; }
+    p { margin-bottom: 1rem; color: var(--text-secondary); }
+    strong { color: var(--text-primary); }
+    .badge {
+      display: inline-block;
+      background-color: rgba(59, 130, 246, 0.15);
+      color: var(--accent);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="badge">Local-First & Offline</div>
+  <h1>x-reader 隐私政策</h1>
+  <p><strong>生效日期：</strong>2026年7月15日</p>
+
+  <p>欢迎使用 x-reader！我们深知您的文档和代码涉及极高的机密性与个人隐私。因此，x-reader 在设计之初便秉承了<strong>“本地优先 (Local-First) 与绝对离线”</strong>的第一性原理。</p>
+
+  <h2>1. 我们不收集任何数据</h2>
+  <p><strong>x-reader 不包含任何网络请求代码，也不连接任何服务器。</strong> 您在使用应用过程中打开的所有 Markdown、HTML、JSON、日志以及各类源代码文件，其全部的读取、解析、渲染与主题排版工作，100% 在您本机的处理器上完成。</p>
+  <p>我们<strong>不收集、不存储、不上传、也不与任何第三方分享</strong>您的任何个人信息、文档内容、设备识别码或使用行为分析。</p>
+
+  <h2>2. 关于本地沙盒缓存 (Local Sandbox Storage)</h2>
+  <p>当您通过微信或其他第三方社交应用使用“用其他应用打开”功能呼出 x-reader 时，为防止这些第三方应用在几天后自动清理导致您的文件失效，x-reader 会在您的手机本地沙盒空间（<code>App Data Directory</code>）内为您生成一份安全备份。</p>
+  <p>这层机制完全在本地执行，缓存数据受到 Android 操作系统严格的安全隔离保护。且应用内置了自动清理机制，将静默删除超过 14 天的临时备份，绝不侵占您的存储空间。</p>
+
+  <h2>3. 设备权限申请说明</h2>
+  <p>为了实现文档的本地读取，x-reader 仅在绝对必要时向您申请<strong>“读取本地文件/存储介质”</strong>的权限。该权限唯一的作用就是提取您主动选择的文本流以便在屏幕上为您渲染，绝不触碰您手机中的其他私密照片或文件。</p>
+
+  <h2>4. 政策更新与联系方式</h2>
+  <p>本应用可能会随着功能迭代更新此隐私政策。因我们不收集您的任何联络方式，我们建议您在应用更新时留意此页面的变动。</p>
+  <p>如果您对本隐私政策或 x-reader 的底层技术安全有任何疑问，请联系我们（或前往 GitHub 查阅开源代码）。</p>
+
+  <br><br>
+  <p style="text-align: center; font-size: 0.8rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+    Designed with ❤️ for absolute privacy and immersive reading.
+  </p>
+
+</body>
+</html>

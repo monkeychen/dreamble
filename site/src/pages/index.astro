@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { postSlug, isListed, sortByDateDesc } from '../lib/helpers.mjs';
+
+const posts = (await getCollection('posts', ({ data }) => isListed(data)))
+  .sort(sortByDateDesc)
+  .slice(0, 5);
+
+const projects = (await getCollection('projects'))
+  .filter((p) => p.data.status === 'active')
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 4);
+---
+
+<Base title="聊哉梦呓" description="安哥的文章与作品：公众号文章备份、独立发表，以及自研工具软件展示">
+  <h1 class="visually-hidden">聊哉梦呓——安哥的文章与作品</h1>
+
+  <p class="foreword">
+    安哥的文字与作品。文章一部分备份自微信公众号「聊哉梦呓」，一部分为本站独立发表；工具软件皆为自研。
+  </p>
+
+  <p class="fleuron">❦</p>
+
+  <section>
+    <h2>最新文章<a class="more" href="/posts/">全部 →</a></h2>
+    <ul class="post-list">
+      {
+        posts.map((p) => (
+          <li>
+            <a href={`/posts/${postSlug(p.id)}/`}>{p.data.title}</a>
+            <span class="leader" />
+            <time>{p.data.date.toISOString().slice(0, 10)}</time>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <p class="fleuron">❦</p>
+
+  <section>
+    <h2>作品<a class="more" href="/projects/">全部 →</a></h2>
+    <ul class="cards">
+      {projects.map((project) => <ProjectCard project={project} />)}
+    </ul>
+  </section>
+</Base>

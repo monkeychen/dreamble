@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { postSlug, isListed, sortByDateDesc } from '../../lib/helpers.mjs';
+
+const posts = (await getCollection('posts', ({ data }) => isListed(data))).sort(sortByDateDesc);
+
+const byYear = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+---
+
+<Base title="文章 · 聊哉梦呓">
+  <h1 class="page-title">文章</h1>
+  {
+    years.map((year) => (
+      <section>
+        <div class="year-head">
+          <h2>{year}</h2>
+        </div>
+        <ul class="post-list">
+          {byYear.get(year)!.map((p) => (
+            <li>
+              <a href={`/posts/${postSlug(p.id)}/`}>{p.data.title}</a>
+              <span class="leader" />
+              <time>{p.data.date.toISOString().slice(0, 10)}</time>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+  {posts.length === 0 && <p>还没有文章。</p>}
+</Base>
