@@ -7,6 +7,9 @@
   --accent: #9c4526;
   --border: #e2d7c0;
   --card-bg: #faf5ea;
+  --table-head: #eee3cf;
+  --table-stripe: #f2eadb;
+  --table-hover: #eadcc4;
   --max-width: 50rem;
   --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
   --kai: "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif SC", serif;
@@ -20,6 +23,9 @@
     --accent: #cf8a58;
     --border: #3a332a;
     --card-bg: #2a241b;
+    --table-head: #332b20;
+    --table-stripe: #262018;
+    --table-hover: #3a2f22;
   }
 }
 
@@ -162,6 +168,66 @@ article .meta {
   margin-bottom: 2.5rem;
 }
 article img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* Markdown 表格：旧杂志账页风格；宽表格只在自身区域横向滚动 */
+article table {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.8rem auto;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 4px;
+  background: var(--card-bg);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  font-variant-numeric: tabular-nums;
+  scrollbar-color: var(--muted) var(--card-bg);
+  scrollbar-width: thin;
+}
+article table::-webkit-scrollbar { height: 8px; }
+article table::-webkit-scrollbar-track { background: var(--card-bg); }
+article table::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 4px; }
+article th,
+article td {
+  min-width: 7rem;
+  padding: 0.65rem 0.85rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+article th {
+  background: var(--table-head);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+article tbody tr:nth-child(even) { background: var(--table-stripe); }
+article tbody tr:hover { background: var(--table-hover); }
+article tr > :last-child { border-right: 0; }
+article tbody tr:last-child > td { border-bottom: 0; }
+article caption {
+  padding: 0 0 0.65rem;
+  color: var(--muted);
+  font-family: var(--kai);
+  text-align: left;
+}
+
+@media (max-width: 40rem) {
+  article table {
+    width: 100%;
+    margin: 1.4rem 0;
+    font-size: 0.86rem;
+  }
+  article th,
+  article td {
+    min-width: 6.5rem;
+    padding: 0.55rem 0.7rem;
+  }
+}
 
 /* 首段首字下沉（仅文章详情页 .prose 容器内） */
 .prose > p:first-child::first-letter {

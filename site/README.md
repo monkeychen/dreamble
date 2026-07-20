@@ -4,7 +4,20 @@
 
 ## 核心理念
 
-**目录即数据库，放文件即发表。** 没有后台、没有数据库、没有在线编辑器——把一个 markdown 目录放进约定位置，跑一条命令，就完成发表。约定不靠自觉：frontmatter 由构建时 schema 强制校验，填错直接报错并指明文件与字段。
+**目录即数据库，放文件即发表。** 没有后台、没有数据库、没有在线编辑器——把一个 markdown 目录放进约定位置，跑一条命令，就完成发表。约定不靠自觉：目录命名、日期一致性、slug 唯一性和 frontmatter 都由构建命令强制校验，填错会直接报错并指明原因。
+
+## 首次准备
+
+项目要求 Node 22.12 以上，推荐使用仓库 `.nvmrc` 固定的版本：
+
+```bash
+cd site
+nvm use
+npm ci
+npm run verify
+```
+
+从 `dreamble` 仓库根目录执行站点命令时，也可以使用 `npm --prefix site run <命令>`。
 
 ## 发表文章
 
@@ -45,7 +58,9 @@ tags: [AI, 工具]
 | `visibility` | — | `public` | 填 `unlisted`：页面存在但不进列表/RSS/sitemap、不被搜索引擎收录，只有拿到链接的人能看 |
 | `draft` | — | `false` | 填 `true`：草稿，完全不构建，怎么发布都不会上线 |
 
-字段拼错、缺必填项，构建会直接报错并指明是哪个文件的哪个字段——错的内容发不出去，放心写。
+字段拼错、出现未知字段、缺必填项，构建会直接报错并指明是哪个文件的哪个字段——错的内容发不出去。
+
+目录本身也会校验：目录日期必须与 `date` 一致，不同文章不能使用同一个 slug，否则它们会争抢同一个 URL。
 
 **第 3 步：本地预览（可选）。** 运行 `npm run dev`，按提示打开浏览器，所见即最终效果，改动实时刷新。
 
@@ -70,6 +85,7 @@ npm run import -- --file backlog.txt
 ```
 
 - 已存在同 slug 的文章自动跳过——**重跑同一清单只补新的**，适合增量备份
+- 导入先写入暂存目录，正文和图片全部完成后才原子落到 `content/posts/`；失败不会留下被误判为成功的半成品
 - 单篇失败不中断整批，结束时汇总失败清单，修正后重跑同一文件即可
 
 导入后人工检查一眼（若有图片下载失败会警告并保留原链接），确认没问题再 `npm run publish`。
@@ -119,15 +135,17 @@ order: 1
 
 **第 2 步：发布。** 同样是 `npm run dev` 预览、`npm run publish` 上线。作品出现在 `https://simiam.com/projects/`，有正文的作品详情页在 `https://simiam.com/projects/my-tool/`。
 
-> 两类内容的现成参照：仓库里的示例内容（`content/posts/2026-07-16-hello-world/`、`content/projects/sample-tool/` 等）就是按约定写的活模板，照着改即可。
+> 两类内容的现成参照：文章可参考 `content/posts/2026-07-18-build-site-with-ai/`，作品可参考 `content/projects/wx-kit/`。
 
 ## 常用命令
 
 | 命令 | 作用 |
 |---|---|
 | `npm run dev` | 本地预览 |
-| `npm run build` | 构建（含内容 schema 校验） |
+| `npm run check` | 内容约束校验 + Astro 类型检查 |
+| `npm run build` | 内容约束校验 + 静态构建 |
 | `npm test` | 单元测试 |
+| `npm run verify` | 提交/发布前完整验收：check + test + build |
 | `npm run import -- <URL> <slug>` | 导入公众号文章 |
 | `npm run publish` | 构建并发布到服务器 |
 
@@ -136,7 +154,7 @@ order: 1
 Astro 静态站点。内容真源在本地 git 仓库，服务器上只有 nginx + 静态文件，零应用进程。
 
 ```
-content/ 放文件 → npm run publish → 构建（校验失败则线上不变）→ rsync 同步（失败自动 fallback git 通道）→ nginx
+content/ 放文件 → npm run publish → 完整验收（失败则线上不变）→ rsync 同步（失败自动 fallback git 通道）→ nginx → 线上健康检查
 ```
 
 ```

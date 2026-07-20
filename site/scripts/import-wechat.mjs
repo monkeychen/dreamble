@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -9,14 +9,15 @@ import {
   collectImages,
   imageFilename,
   localizeImages,
-  buildIndexMd,
   formatDateCN,
   fromWxkit,
   parseBatchFile,
   findPostDir,
 } from './lib/wechat.mjs';
+import { commitPostImport, hasPostIndex } from './lib/import-storage.mjs';
 
 const POSTS_ROOT = 'content/posts';
+const IMPORT_STAGING_ROOT = 'content/.import-staging';
 
 function usage() {
   console.error('用法: npm run import -- <公众号文章URL> <英文slug>');
@@ -26,6 +27,14 @@ function usage() {
 }
 
 const hasWxkit = spawnSync('wx-kit', ['--version'], { encoding: 'utf8' }).status === 0;
+
+async function existingPost(slug) {
+  const directories = await readdir(POSTS_ROOT).catch((error) => {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  });
+  return findPostDir(directories, slug);
+}
 
 // 通道一（优先）：本机 wx-kit CLI。走真实客户端通道，不受微信反爬影响，
 // 图片由 wx-kit 本地化。不可用或失败时返回 null，由调用方回落到通道二。
@@ -55,19 +64,31 @@ async function importViaWxkit(url, slug) {
       return null;
     }
 
-    const dir = path.join(POSTS_ROOT, `${date}-${slug}`);
-    await mkdir(dir, { recursive: true });
-    let imgCount = 0;
-    try {
-      for (const f of await readdir(path.join(item.dir, 'images'))) {
-        await copyFile(path.join(item.dir, 'images', f), path.join(dir, f));
-        imgCount++;
-      }
-    } catch {
-      // 无图文章没有 images 目录，属正常
-    }
-    await writeFile(path.join(dir, 'index.md'), buildIndexMd({ title, date, markdown: body }));
-    return { dir, imgSummary: `图片 ${imgCount} 张（wx-kit 已本地化）`, channel: 'wx-kit' };
+    const result = await commitPostImport({
+      postsRoot: POSTS_ROOT,
+      stagingRoot: IMPORT_STAGING_ROOT,
+      title,
+      date,
+      slug,
+      populate: async (staging) => {
+        const imagesDirectory = path.join(item.dir, 'images');
+        let imageFiles;
+        try {
+          imageFiles = await readdir(imagesDirectory);
+        } catch (error) {
+          if (error.code !== 'ENOENT') throw error;
+          imageFiles = [];
+        }
+        for (const file of imageFiles) {
+          await copyFile(path.join(imagesDirectory, file), path.join(staging, file));
+        }
+        return {
+          markdown: body,
+          imgSummary: `图片 ${imageFiles.length} 张（wx-kit 已本地化）`,
+        };
+      },
+    });
+    return { ...result, channel: 'wx-kit' };
   } finally {
     await rm(tmp, { recursive: true, force: true });
   }
@@ -91,34 +112,44 @@ async function importViaFetch(url, slug) {
     );
   }
 
-  let markdown = htmlToMarkdown(contentHtml);
-  const dir = path.join(POSTS_ROOT, `${formatDateCN(date)}-${slug}`);
-  await mkdir(dir, { recursive: true });
-
-  const urls = collectImages(markdown);
-  const mapping = [];
-  for (const [i, imgUrl] of urls.entries()) {
-    const filename = imageFilename(imgUrl, i);
-    try {
-      const imgRes = await fetch(imgUrl, { headers: { referer: 'https://mp.weixin.qq.com/' } });
-      if (!imgRes.ok) {
-        console.warn(`⚠️  图片下载失败(HTTP ${imgRes.status})，保留原链接: ${imgUrl}`);
-        continue;
+  const originalMarkdown = htmlToMarkdown(contentHtml);
+  const formattedDate = formatDateCN(date);
+  const result = await commitPostImport({
+    postsRoot: POSTS_ROOT,
+    stagingRoot: IMPORT_STAGING_ROOT,
+    title,
+    date: formattedDate,
+    slug,
+    populate: async (staging) => {
+      const urls = collectImages(originalMarkdown);
+      const mapping = [];
+      for (const [i, imgUrl] of urls.entries()) {
+        const filename = imageFilename(imgUrl, i);
+        try {
+          const imgRes = await fetch(imgUrl, { headers: { referer: 'https://mp.weixin.qq.com/' } });
+          if (!imgRes.ok) {
+            console.warn(`⚠️  图片下载失败(HTTP ${imgRes.status})，保留原链接: ${imgUrl}`);
+            continue;
+          }
+          await writeFile(path.join(staging, filename), Buffer.from(await imgRes.arrayBuffer()));
+          mapping.push([imgUrl, filename]);
+        } catch (err) {
+          console.warn(`⚠️  图片下载失败(${err.cause?.code ?? err.message})，保留原链接: ${imgUrl}`);
+        }
       }
-      await writeFile(path.join(dir, filename), Buffer.from(await imgRes.arrayBuffer()));
-      mapping.push([imgUrl, filename]);
-    } catch (err) {
-      console.warn(`⚠️  图片下载失败(${err.cause?.code ?? err.message})，保留原链接: ${imgUrl}`);
-    }
-  }
-  markdown = localizeImages(markdown, mapping);
-
-  await writeFile(path.join(dir, 'index.md'), buildIndexMd({ title, date, markdown }));
-  return { dir, imgSummary: `下载图片 ${mapping.length}/${urls.length} 张`, channel: '内置抓取' };
+      return {
+        markdown: localizeImages(originalMarkdown, mapping),
+        imgSummary: `下载图片 ${mapping.length}/${urls.length} 张`,
+      };
+    },
+  });
+  return { ...result, channel: '内置抓取' };
 }
 
 /** 导入单篇。失败抛错，由调用方决定中断（单篇模式）或继续（批量模式）。 */
 async function importOne(url, slug) {
+  const existed = await existingPost(slug);
+  if (existed) throw new Error(`slug 已存在：${existed}。请更换 slug，或先人工处理已有内容`);
   return (await importViaWxkit(url, slug)) ?? (await importViaFetch(url, slug));
 }
 
@@ -150,8 +181,14 @@ async function runBatch(file) {
     }
     const existed = findPostDir(existingDirs, entry.slug);
     if (existed) {
-      console.log(`${label} ⏭  已存在，跳过: ${existed}`);
-      skipped.push(entry);
+      if (await hasPostIndex(POSTS_ROOT, existed)) {
+        console.log(`${label} ⏭  已存在，跳过: ${existed}`);
+        skipped.push(entry);
+      } else {
+        const reason = `检测到不完整目录 ${existed}（缺少 index.md），请人工检查后重跑`;
+        console.warn(`${label} ✗ ${reason}`);
+        failed.push({ ...entry, reason });
+      }
       continue;
     }
     try {

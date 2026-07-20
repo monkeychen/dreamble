@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postSlug, projectSlug, isListed, sortByDateDesc } from '../src/lib/helpers.mjs';
+import { postSlug, projectSlug, isBuildable, isListed, sortByDateDesc } from '../src/lib/helpers.mjs';
 
 test('postSlug 去掉日期前缀', () => {
   assert.equal(postSlug('2026-07-16-hello-world'), 'hello-world');
@@ -19,6 +19,11 @@ test('isListed：public 且非 draft 才列出', () => {
   assert.equal(isListed({ visibility: 'public', draft: false }), true);
   assert.equal(isListed({ visibility: 'unlisted', draft: false }), false);
   assert.equal(isListed({ visibility: 'public', draft: true }), false);
+});
+
+test('isBuildable：draft 不生成详情页，unlisted 仍生成详情页', () => {
+  assert.equal(isBuildable({ visibility: 'public', draft: true }), false);
+  assert.equal(isBuildable({ visibility: 'unlisted', draft: false }), true);
 });
 
 test('sortByDateDesc 新文章在前', () => {

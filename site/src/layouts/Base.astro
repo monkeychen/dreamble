@@ -8,9 +8,18 @@ interface Props {
   title: string;
   description?: string;
   noindex?: boolean;
+  type?: 'website' | 'article';
+  publishedTime?: string;
 }
 
-const { title, description = '聊哉梦呓——安哥的文章与作品', noindex = false } = Astro.props;
+const {
+  title,
+  description = '聊哉梦呓——安哥的文章与作品',
+  noindex = false,
+  type = 'website',
+  publishedTime,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -21,11 +30,21 @@ const { title, description = '聊哉梦呓——安哥的文章与作品', noind
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="聊哉梦呓" />
+    <meta property="og:locale" content="zh_CN" />
+    {type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#f6f0e3" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#211c15" media="(prefers-color-scheme: dark)" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonical} />
     <link rel="alternate" type="application/rss+xml" title="聊哉梦呓" href="/rss.xml" />
   </head>
   <body>

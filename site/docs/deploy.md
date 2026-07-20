@@ -7,7 +7,7 @@
 
 1. DNS：确认域名 A 记录指向服务器 IP：`dig +short simiam.com`
 2. 服务器初始化（幂等，可重复执行）：`bash scripts/server-setup.sh`
-3. 首次发布：`npm run publish`，然后访问 http://simiam.com 验证
+3. 首次发布：HTTPS 尚未配置时，先把 `.deploy.env` 的 `SITE_URL` 临时设为 `http://simiam.com`，再执行 `npm run publish`
 4. 配置 HTTPS（在服务器上执行，需要人工确认）：
    - 安装 certbot：Ubuntu/Debian 用 `apt install -y certbot python3-certbot-nginx`；
      CentOS/TencentOS 用 `yum install -y certbot python3-certbot-nginx`
@@ -16,12 +16,15 @@
    - 注意：配置 HTTPS 后如需重跑 `scripts/server-setup.sh`，脚本会检测到 HTTPS 配置并跳过 nginx 配置写入，不会覆盖 certbot 的修改
    - 验证自动续期：`certbot renew --dry-run`
 5. 复查：`curl -I https://simiam.com/` 返回 200；http 应 301 到 https
+6. 把 `.deploy.env` 的 `SITE_URL` 改回 `https://simiam.com`
 
 ## 日常发布
 
-`npm run publish` —— 构建（含内容校验）→ rsync 同步 → 健康检查。
+`npm run publish` —— 内容与类型检查 → 单元测试 → 构建 → rsync 同步 → 健康检查。
 rsync 不可用时自动 fallback 到 git 通道（推送到服务器 bare 仓库，hook 自动 checkout）。
 强制走 git 通道验证：`DEPLOY_FORCE_GIT=1 npm run publish`
+
+线上健康检查失败会以非零状态退出，并给出 nginx、DNS、HTTPS 排查方向；即使文件同步完成，也不会把网站不可访问报告为发布成功。
 
 ## 安全加固（建议，是否执行由站主决定）
 

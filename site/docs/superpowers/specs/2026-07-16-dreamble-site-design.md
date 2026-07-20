@@ -34,7 +34,7 @@
 ## 4. 目录结构
 
 ```
-dreamble-site/
+dreamble/site/
 ├── CLAUDE.md            # 项目规范
 ├── content/
 │   ├── posts/           # 文章：一篇一目录
@@ -56,7 +56,7 @@ dreamble-site/
 
 ## 5. 内容约定（frontmatter）
 
-由 Astro Content Collections schema 在构建时强制校验：字段错误 / 缺必填项 → 构建失败并指明文件与字段。
+由自定义内容策略检查和 Astro Content Collections schema 共同强制校验：目录格式、日期一致性、slug 唯一性、未知字段、字段错误或缺少必填项都会导致构建失败。
 
 ### 5.1 文章 `content/posts/*/index.md`
 
@@ -107,15 +107,16 @@ dreamble-site/
 解决微信图床防盗链（站外引用 `mmbiz.qpic.cn` 图片会裂图）：
 
 1. 抓取公众号文章 HTML，正文转 markdown
-2. 下载全部图片到文章目录，改写链接为相对路径
+2. 在 `content/.import-staging/` 暂存目录下载图片并改写相对链接
 3. 生成 frontmatter（`source: wechat`，date 取文章发表日期）
-4. 落成符合约定的文章目录，人工检查后 publish
+4. 全部完成后原子移动到正式文章目录；失败则清理暂存内容，不留下半成品
+5. 人工检查后 publish
 
 ### 7.2 发布命令 `npm run publish`
 
-1. `astro build`：校验 + 构建，失败则中止（线上不变，不存在发一半）
+1. `npm run verify`：内容约束、类型检查、单元测试和构建，失败则中止（线上不变）
 2. 同步 `dist/` 到服务器：**优先 rsync**（macOS 自带）；rsync 不可用或失败时 **fallback 到 git 同步**（dist 推送至服务器 bare 仓库，post-receive hook checkout 到 nginx 目录）
-3. 输出结果反馈：成功打印站点 URL；失败打印原因与下一步建议
+3. 对线上 URL 做健康检查：成功打印站点 URL；失败以非零状态退出并提示排查方向
 
 ## 8. 服务器与部署（一次性配置）
 
@@ -134,14 +135,14 @@ dreamble-site/
 
 ## 10. 错误处理
 
-- frontmatter 不合规 → 构建报错，指明文件与字段（schema 校验）
+- 目录、日期、slug 或 frontmatter 不合规 → 构建报错，指明原因
 - 构建失败 → 不执行同步，线上不受影响
 - rsync 失败 → 自动尝试 git 同步；两者都失败 → 明确报错并提示排查方向
 - unlisted 文章 → 三重隔离：不进列表页、不进 RSS/sitemap、`<meta name="robots" content="noindex">`
 
 ## 11. 验证方式
 
-- `astro check` + `astro build` 作为基础验证，publish 内置
+- `npm run verify` 作为统一验收入口，覆盖内容约束、`astro check`、单元测试和静态构建，publish 内置
 - 本地 `npm run dev` 预览即所得（构建产物与预览一致）
 - 部署后以 `curl` 抽查首页、文章页、RSS 的 HTTP 200 与内容
 

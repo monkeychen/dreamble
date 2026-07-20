@@ -11,7 +11,12 @@ export function projectSlug(id) {
 
 /** 是否进入列表页 / RSS / sitemap */
 export function isListed(data) {
-  return !data.draft && data.visibility === 'public';
+  return isBuildable(data) && data.visibility === 'public';
+}
+
+/** 是否生成文章详情页 */
+export function isBuildable(data) {
+  return !data.draft;
 }
 
 export function sortByDateDesc(a, b) {

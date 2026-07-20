@@ -4,6 +4,9 @@ node_modules/
 # build output
 dist/
 
+# interrupted content imports (completed imports are atomically moved into content/posts)
+content/.import-staging/
+
 # deploy config (server address etc. — never commit)
 .deploy.env
 
