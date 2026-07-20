@@ -40,8 +40,10 @@
 ## Git、部署与安全
 
 - commit message 使用简洁英文。
+- 站主已长期授权内容发布自动闭环：备份或发表文章、上架或更新作品时，内容检查通过后直接执行 `npm run verify` → commit → `git push origin` → `npm run publish`，不再等待站主逐步下达 commit、push、发布命令。
+- 上述授权只覆盖文章和作品内容及其直接依赖的图片等素材；代码、配置、脚本和文档变更仍遵循当次任务授权。工作区存在无关改动时，只提交本次内容，不能静默夹带。
 - 源码 Git 与部署 Git 是两个相互独立的通道：
-  - 源码 Git 指 `dreamble` 仓库及其 `origin`；不自动执行 `git push origin`，等待站主明确要求。
+  - 源码 Git 指 `dreamble` 仓库及其 `origin`；除上述内容发布自动闭环或站主当次明确要求外，不自动执行 `git push origin`。
   - 部署 Git fallback 指 `npm run publish` 在 rsync 不可用或被强制禁用时，把构建后的 `dist/` 临时初始化为 Git 仓库并推送到服务器 bare repo。它不推送源码、不改写源码仓库历史，是发布命令内置且允许执行的同步通道。
 - 服务器地址、账号只放在 gitignored 的 `.deploy.env`；密码、密钥、token 不进入仓库。
 - 发布后的站点健康检查失败必须以非零状态退出，不能把“同步完成”冒充“发布成功”。
