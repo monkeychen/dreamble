@@ -12,6 +12,13 @@
 
 ## 记录
 
+### 2026-07-20 · 合并后仓库与部署边界同步
+
+**动机**：站点已从独立仓库合并到 `dreamble/site`，但部分脚本仍依赖调用者位于 `site/`，文档也混用了源码 Git 与服务器部署 Git；这会导致从仓库根目录直接调用脚本时读取错误目录，并让发布通道的权限边界难以判断。
+**变更**：先更新 `AGENTS.md`，明确 monorepo、内容唯一真源与两套 Git 的边界；Node 脚本统一从自身文件位置解析 `site/`，不再依赖当前工作目录，并补跨目录回归测试；README、部署手册、设计文档、历史计划提示和部署脚本术语同步到当前结构；回滚命令改为从仓库根目录显式操作 `site/content/`。
+**验证**：`npm --prefix site run verify` 全过，Astro 检查 0 error / 0 warning / 0 hint，28 项单测全过；从仓库根目录与 `/tmp` 直接执行内容校验均成功。`DEPLOY_FORCE_GIT=1 npm --prefix site run publish` 实测输出 `通道: git-fallback`，服务器 bare repo 生成新的 deploy 提交并由 hook 完成 checkout；线上 15 个页面/静态资源均返回 200，HTTP 301 到 HTTPS，RSS 4 篇、sitemap 9 个 URL。
+**遗留**：无。
+
 ### 2026-07-20 · Markdown 表格旧杂志主题
 
 **动机**：Astro 能解析 GFM 表格，但站点没有表格样式，默认呈现缺少边界和层次；宽表格在手机端还可能撑破页面。
@@ -69,10 +76,10 @@
 **技术选型与架构**（决策理由见 [设计文档](superpowers/specs/2026-07-16-dreamble-site-design.md)）：
 - Astro 静态站点（实际安装 7.x），Content Collections 对 frontmatter 做构建时 schema 强制校验——约定由机器执行而非文档自觉
 - 内容真源在本地 git 仓库；服务器上只有 nginx + 静态文件，零应用进程
-- 发布链路：`npm run publish` = 构建（失败则线上不变）→ rsync 同步（失败自动 fallback git bare 仓库 + hook 通道）
+- 发布链路：`npm run publish` = 构建（失败则线上不变）→ rsync 同步（失败自动走部署 Git bare repo + hook 通道；与源码 Git 无关）
 - unlisted 文章三重隔离（不进列表/RSS/sitemap + noindex）；draft 完全不构建
 
-**交付内容**（13 个提交，af8363b..23f5d48）：
+**交付内容**（原独立 `dreamble-site` 仓库中的 13 个提交，`af8363b..23f5d48`；这些提交哈希未随内容合并进入当前 `dreamble` 仓库，仅作为历史记录）：
 - 页面：首页、文章归档/详情、作品卡片墙/详情（正文为空则退化为纯卡片）、关于页、RSS、sitemap、备案页脚（ICP + 公安）
 - `npm run import -- <URL> <slug>`：公众号文章导入，图片本地化解决微信图床防盗链
 - `scripts/publish.sh` + `scripts/server-setup.sh`（幂等）+ [部署手册](deploy.md)

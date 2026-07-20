@@ -6,10 +6,8 @@ import {
   validatePostRecords,
   validateProjectNames,
 } from './lib/content-policy.mjs';
+import { POSTS_ROOT, PROJECTS_ROOT } from './lib/project-paths.mjs';
 
-const root = process.cwd();
-const postsRoot = path.join(root, 'content/posts');
-const projectsRoot = path.join(root, 'content/projects');
 const errors = [];
 
 async function contentDirectories(directory, label) {
@@ -32,16 +30,16 @@ async function readIndex(directory, name, label) {
   }
 }
 
-const postNames = await contentDirectories(postsRoot, '文章');
+const postNames = await contentDirectories(POSTS_ROOT, '文章');
 const postRecords = [];
 for (const name of postNames) {
-  const markdown = await readIndex(postsRoot, name, '文章');
+  const markdown = await readIndex(POSTS_ROOT, name, '文章');
   postRecords.push({ name, date: frontmatterDate(markdown) });
 }
 errors.push(...validatePostRecords(postRecords));
 
-const projectNames = await contentDirectories(projectsRoot, '作品');
-for (const name of projectNames) await readIndex(projectsRoot, name, '作品');
+const projectNames = await contentDirectories(PROJECTS_ROOT, '作品');
+for (const name of projectNames) await readIndex(PROJECTS_ROOT, name, '作品');
 errors.push(...validateProjectNames(projectNames));
 
 if (errors.length > 0) {

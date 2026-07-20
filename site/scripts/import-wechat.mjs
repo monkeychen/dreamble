@@ -15,9 +15,7 @@ import {
   findPostDir,
 } from './lib/wechat.mjs';
 import { commitPostImport, hasPostIndex } from './lib/import-storage.mjs';
-
-const POSTS_ROOT = 'content/posts';
-const IMPORT_STAGING_ROOT = 'content/.import-staging';
+import { IMPORT_STAGING_ROOT, POSTS_ROOT } from './lib/project-paths.mjs';
 
 function usage() {
   console.error('用法: npm run import -- <公众号文章URL> <英文slug>');

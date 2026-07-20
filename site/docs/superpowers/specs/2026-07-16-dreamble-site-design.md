@@ -1,7 +1,7 @@
 # 聊哉梦呓个人站 设计文档
 
 - 日期：2026-07-16
-- 状态：已确认（设计阶段）
+- 状态：已实现；2026-07-20 同步为合并后的仓库结构
 
 ## 1. 背景与目标
 
@@ -27,15 +27,16 @@
 本地 content/ 放文件 → npm run publish → Astro 构建 → 同步 dist/ 到服务器 → nginx 伺服静态文件
 ```
 
-- 内容真源在本地 git 仓库（天然备份）
+- 内容真源在 `dreamble` 源码仓库的 `site/content/`（天然备份）；仓库根目录 `articles` 仅为兼容符号链接
 - 服务器上只有构建产物，不跑任何应用进程
-- 站点代码、内容、脚本同仓库（`dreamble-site`）
+- 站点代码、内容、脚本位于同一源码仓库的 `site/` 子目录；`site/` 内没有嵌套 Git 仓库
 
 ## 4. 目录结构
 
 ```
 dreamble/site/
-├── CLAUDE.md            # 项目规范
+├── AGENTS.md            # 项目规范真源
+├── CLAUDE.md            # 指向 AGENTS.md 的兼容入口
 ├── content/
 │   ├── posts/           # 文章：一篇一目录
 │   │   └── 2026-07-16-some-post/
@@ -115,7 +116,7 @@ dreamble/site/
 ### 7.2 发布命令 `npm run publish`
 
 1. `npm run verify`：内容约束、类型检查、单元测试和构建，失败则中止（线上不变）
-2. 同步 `dist/` 到服务器：**优先 rsync**（macOS 自带）；rsync 不可用或失败时 **fallback 到 git 同步**（dist 推送至服务器 bare 仓库，post-receive hook checkout 到 nginx 目录）
+2. 同步 `dist/` 到服务器：**优先 rsync**（macOS 自带）；rsync 不可用或失败时 **fallback 到部署 Git 同步**（dist 临时建库后推送至服务器 bare repo，post-receive hook checkout 到 nginx 目录）。该通道独立于 `dreamble` 源码 Git，不会推送源码或改写源码历史
 3. 对线上 URL 做健康检查：成功打印站点 URL；失败以非零状态退出并提示排查方向
 
 ## 8. 服务器与部署（一次性配置）
@@ -137,7 +138,7 @@ dreamble/site/
 
 - 目录、日期、slug 或 frontmatter 不合规 → 构建报错，指明原因
 - 构建失败 → 不执行同步，线上不受影响
-- rsync 失败 → 自动尝试 git 同步；两者都失败 → 明确报错并提示排查方向
+- rsync 失败 → 自动尝试部署 Git fallback；两者都失败 → 明确报错并提示排查方向
 - unlisted 文章 → 三重隔离：不进列表页、不进 RSS/sitemap、`<meta name="robots" content="noindex">`
 
 ## 11. 验证方式

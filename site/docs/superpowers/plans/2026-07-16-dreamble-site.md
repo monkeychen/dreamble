@@ -1,5 +1,8 @@
 # 聊哉梦呓个人站（dreamble-site）Implementation Plan
 
+> [!WARNING]
+> 历史快照：本计划记录 `site/` 仍是独立 `dreamble-site` 仓库时的实施过程。绝对路径、命令、依赖版本、测试数量和代码片段不再作为当前操作依据；当前规则见 `site/AGENTS.md`，操作见 `site/README.md`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 构建并上线一个纯静态个人站（simiam.com）：markdown 放入约定目录即发表文章/上架作品，一条命令发布到自有服务器。

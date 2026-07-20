@@ -35,7 +35,7 @@ server {
 }
 EOF
 
-# 2) git 备用同步通道的 post-receive hook
+# 2) 部署 Git fallback 通道的 post-receive hook
 cat > "${TMP}/post-receive" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
@@ -43,7 +43,7 @@ git --work-tree="${DEPLOY_PATH}" --git-dir="${DEPLOY_GIT_REPO}" checkout -f main
 git --work-tree="${DEPLOY_PATH}" --git-dir="${DEPLOY_GIT_REPO}" clean -fd
 EOF
 
-echo "==> 初始化目录与 git 通道"
+echo "==> 初始化目录与部署 Git fallback 通道"
 ssh "${REMOTE}" "mkdir -p '${DEPLOY_PATH}' && { [ -d '${DEPLOY_GIT_REPO}' ] || git init --bare -b main '${DEPLOY_GIT_REPO}'; }"
 scp -q "${TMP}/post-receive" "${REMOTE}:${DEPLOY_GIT_REPO}/hooks/post-receive"
 ssh "${REMOTE}" "chmod +x '${DEPLOY_GIT_REPO}/hooks/post-receive'"

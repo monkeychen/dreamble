@@ -10,8 +10,8 @@ REMOTE="${DEPLOY_USER}@${DEPLOY_HOST}"
 
 echo "==> 1/3 完整验收（内容约束、类型、测试、构建）"
 npm run verify
-rm -rf dist/.git   # 上次 git 通道失败可能残留，绝不能同步到公网
-find dist -name .DS_Store -delete   # Finder 元数据不上公网（rsync 与 git 通道都覆盖）
+rm -rf dist/.git   # 上次部署 Git fallback 失败可能残留，绝不能同步到公网
+find dist -name .DS_Store -delete   # Finder 元数据不上公网（rsync 与部署 Git fallback 都覆盖）
 
 echo "==> 2/3 同步到 ${DEPLOY_HOST}"
 synced=""
@@ -19,12 +19,12 @@ if [[ "${DEPLOY_FORCE_GIT:-0}" != "1" ]] && command -v rsync >/dev/null 2>&1; th
   if rsync -az --delete --exclude=.git dist/ "${REMOTE}:${DEPLOY_PATH}/"; then
     synced="rsync"
   else
-    echo "    rsync 失败，改用 git 同步" >&2
+    echo "    rsync 失败，改用部署 Git fallback 通道" >&2
   fi
 fi
 
 if [[ -z "$synced" ]]; then
-  : "${DEPLOY_GIT_REPO:?git 同步需要 DEPLOY_GIT_REPO}"
+  : "${DEPLOY_GIT_REPO:?部署 Git fallback 需要 DEPLOY_GIT_REPO}"
   (
     cd dist
     rm -rf .git
@@ -34,7 +34,7 @@ if [[ -z "$synced" ]]; then
     git push -q -f "ssh://${REMOTE}${DEPLOY_GIT_REPO}" main
     rm -rf .git
   )
-  synced="git"
+  synced="git-fallback"
 fi
 echo "    同步完成（通道: ${synced}）"
 

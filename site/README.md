@@ -2,6 +2,8 @@
 
 个人站点 [simiam.com](https://simiam.com)：微信公众号「聊哉梦呓」的文章备份与独立发表，以及自研工具软件的作品展示。
 
+本站代码位于 `dreamble` 源码仓库的 `site/` 子目录，不再是独立 Git 仓库。文章唯一真源是 `site/content/posts/`；仓库根目录的 `articles` 是兼容旧工作流的符号链接，指向同一目录。
+
 ## 核心理念
 
 **目录即数据库，放文件即发表。** 没有后台、没有数据库、没有在线编辑器——把一个 markdown 目录放进约定位置，跑一条命令，就完成发表。约定不靠自觉：目录命名、日期一致性、slug 唯一性和 frontmatter 都由构建命令强制校验，填错会直接报错并指明原因。
@@ -147,15 +149,17 @@ order: 1
 | `npm test` | 单元测试 |
 | `npm run verify` | 提交/发布前完整验收：check + test + build |
 | `npm run import -- <URL> <slug>` | 导入公众号文章 |
-| `npm run publish` | 构建并发布到服务器 |
+| `npm run publish` | 构建并发布到服务器（rsync 优先，失败时走部署 Git fallback） |
 
 ## 架构
 
-Astro 静态站点。内容真源在本地 git 仓库，服务器上只有 nginx + 静态文件，零应用进程。
+Astro 静态站点。内容真源在 `dreamble` 源码仓库，服务器上只有 nginx + 静态文件，零应用进程。
 
 ```
-content/ 放文件 → npm run publish → 完整验收（失败则线上不变）→ rsync 同步（失败自动 fallback git 通道）→ nginx → 线上健康检查
+site/content/ 放文件 → npm run publish → 完整验收（失败则线上不变）→ rsync 同步（失败自动走部署 Git fallback）→ nginx → 线上健康检查
 ```
+
+这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，是否 `git push origin` 由站主明确决定；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是 `npm run publish` 的备用同步机制，不包含源码，也不会改写源码仓库历史。
 
 ```
 ├── content/          # 内容（文章 / 作品 / 关于页）—— 日常唯一要碰的目录

@@ -1,5 +1,8 @@
 # 「旧杂志」主题改版 Implementation Plan
 
+> [!WARNING]
+> 历史快照：本计划记录 `site/` 仍按独立项目实施时的过程。路径、命令、依赖版本、测试数量和代码片段不再作为当前操作依据；当前规则见 `site/AGENTS.md`，操作见 `site/README.md`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 把站点视觉改版为「暖色旧杂志」：米黄纸感配色、思源宋体分包自托管、刊头/目录页/首字下沉等杂志化版式，夜读暖黑深色。
