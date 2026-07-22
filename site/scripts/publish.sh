@@ -42,6 +42,10 @@ echo "==> 3/3 线上健康检查"
 SITE_URL="${SITE_URL:-https://simiam.com}"
 if curl -fsS -o /dev/null --max-time 10 "${SITE_URL}/"; then
   echo "✅ 发布成功: ${SITE_URL}"
+  git pull origin main
+  git add -A 
+  git commit -a -m 'add a new article.'
+  git push origin main
 else
   echo "❌ 文件已同步，但 ${SITE_URL} 访问检查未通过。" >&2
   echo "   请检查 nginx、DNS 和 HTTPS；首次部署可暂时把 .deploy.env 的 SITE_URL 改为 http://${DOMAIN:-simiam.com}。" >&2
