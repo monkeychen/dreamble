@@ -24,7 +24,7 @@
 rsync 不可用或同步失败时自动 fallback 到部署 Git 通道（仅把 `dist/` 推送到服务器 bare repo，hook 自动 checkout）。
 强制验证该通道：`DEPLOY_FORCE_GIT=1 npm --prefix site run publish`
 
-部署 Git fallback 与源码 Git 无关：它不会向 `dreamble` 的 `origin` 推送，也不会把源码放到服务器。源码是否执行 `git push origin` 仍由站主单独决定。
+部署 Git fallback 与源码 Git 无关：它不会向 `dreamble` 的 `origin` 推送，也不会把源码放到服务器。`site/` 任务验证通过后按 `AGENTS.md` 的长期授权在发布命令之外完成源码 commit 与 `git push origin main`；`npm run publish` 只负责验收、部署和线上健康检查。
 
 线上健康检查失败会以非零状态退出，并给出 nginx、DNS、HTTPS 排查方向；即使文件同步完成，也不会把网站不可访问报告为发布成功。
 

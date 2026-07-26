@@ -172,7 +172,7 @@ Astro 静态站点。内容真源在 `dreamble` 源码仓库，服务器上只�
 site/content/ 放文件 → npm run publish → 完整验收（失败则线上不变）→ rsync 同步（失败自动走部署 Git fallback）→ nginx → 线上健康检查
 ```
 
-这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，是否 `git push origin` 由站主明确决定；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是 `npm run publish` 的备用同步机制，不包含源码，也不会改写源码仓库历史。
+这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，`site/` 任务验证通过后按 `AGENTS.md` 的长期授权自动提交并推送；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是 `npm run publish` 的备用同步机制，不包含源码，也不会改写源码仓库历史。源码提交与推送由执行任务的一方在发布命令之外完成，`npm run publish` 本身只负责验收、部署和线上健康检查。
 
 ```
 ├── content/          # 内容（文章 / 作品 / 关于页）—— 日常唯一要碰的目录
