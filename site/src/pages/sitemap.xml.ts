@@ -10,6 +10,7 @@ export async function GET(context: APIContext) {
     '/',
     '/posts/',
     '/projects/',
+    '/tools/',
     '/about/',
     ...posts.map((p) => `/posts/${postSlug(p.id)}/`),
     ...projects.filter((p) => p.body?.trim()).map((p) => `/projects/${projectSlug(p.id)}/`),
