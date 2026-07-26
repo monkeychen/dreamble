@@ -1,0 +1,38 @@
+---
+interface Props {
+  active: 'md2wechat';
+}
+
+const { active } = Astro.props;
+const tools = [
+  {
+    id: 'md2wechat',
+    name: 'md2wechat',
+    description: 'Markdown 排版',
+    href: '/tools/',
+  },
+] as const;
+---
+
+<div class="tool-layout">
+  <aside class="tool-sidebar">
+    <p class="tool-sidebar-title">工具箱</p>
+    <nav aria-label="工具列表">
+      {
+        tools.map((tool) => (
+          <a
+            class:list={['tool-sidebar-item', { 'is-active': tool.id === active }]}
+            href={tool.href}
+            aria-current={tool.id === active ? 'page' : undefined}
+          >
+            <strong>{tool.name}</strong>
+            <span>{tool.description}</span>
+          </a>
+        ))
+      }
+    </nav>
+  </aside>
+  <section class="tool-content">
+    <slot />
+  </section>
+</div>

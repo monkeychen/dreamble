@@ -1,0 +1,353 @@
+---
+import Base from '../../layouts/Base.astro';
+import ToolShell from '../../components/tools/ToolShell.astro';
+import '../../styles/tools.css';
+
+const sample = `# 把注意力留给内容
+
+Markdown 负责结构，**md2wechat** 负责把它变成适合微信公众号的排版。
+
+## 为什么这样写
+
+- 左边专心写 Markdown
+- 右边实时检查最终效果
+- 完成后复制富文本，直接粘贴到公众号后台
+
+> 排版不应该打断写作，它只负责让内容更容易被读懂。
+
+## 简单对比
+
+| 工作方式 | 关注点 | 结果 |
+| --- | --- | --- |
+| 手工调格式 | 字号、颜色、间距 | 容易反复修改 |
+| Markdown 排版 | 内容和结构 | 风格统一、可复用 |
+
+### 一段代码
+
+\`\`\`js
+const idea = "先写清楚，再排漂亮";
+console.log(idea);
+\`\`\`
+
+[聊哉梦呓](https://simiam.com)`;
+---
+
+<Base
+  title="md2wechat · 工具 · 聊哉梦呓"
+  description="在浏览器本地把 Markdown 转为适合微信公众号粘贴的富文本"
+  mainClass="tool-main"
+>
+  <ToolShell active="md2wechat">
+    <div class="tool-heading">
+      <div>
+        <p class="tool-eyebrow">Markdown → 微信公众号</p>
+        <h1>md2wechat</h1>
+        <p>左边写 Markdown，右边看排版；完成后复制，直接粘贴到微信公众号编辑器。</p>
+      </div>
+      <p class="tool-privacy">内容仅保存在当前浏览器，不会上传。</p>
+    </div>
+
+    <div class="tool-toolbar" aria-label="排版工具栏">
+      <label for="tool-theme">排版主题</label>
+      <select id="tool-theme">
+        <option value="magazine">旧杂志</option>
+        <option value="minimal">简约蓝</option>
+        <option value="green">清新绿</option>
+      </select>
+      <button id="tool-sample" class="tool-button tool-button-secondary" type="button">恢复示例</button>
+      <button id="tool-copy" class="tool-button tool-button-primary" type="button">复制到微信公众号</button>
+    </div>
+
+    <div class="tool-workspace">
+      <section class="tool-panel tool-editor-panel">
+        <div class="tool-panel-head">
+          <label for="tool-markdown">Markdown</label>
+          <span id="tool-count">0 字 · 0 行</span>
+        </div>
+        <textarea
+          id="tool-markdown"
+          spellcheck="true"
+          aria-describedby="tool-editor-help"
+        >{sample}</textarea>
+        <p id="tool-editor-help" class="visually-hidden">输入 Markdown 后，右侧会实时显示微信公众号排版效果。</p>
+      </section>
+
+      <section class="tool-panel tool-preview-panel">
+        <div class="tool-panel-head">
+          <span>微信预览</span>
+          <span id="tool-status" role="status" aria-live="polite">已自动保存</span>
+        </div>
+        <div class="tool-preview-canvas">
+          <article id="tool-preview" aria-label="Markdown 排版预览"></article>
+        </div>
+      </section>
+    </div>
+
+    <noscript>
+      <p class="tool-noscript">md2wechat 需要浏览器启用 JavaScript 才能实时转换和复制富文本。</p>
+    </noscript>
+  </ToolShell>
+</Base>
+
+<script>
+  import DOMPurify from 'dompurify';
+  import { marked } from 'marked';
+
+  const STORAGE_KEY = 'simiam-md2wechat-draft-v1';
+  const THEME_KEY = 'simiam-md2wechat-theme-v1';
+
+  const themes = {
+    magazine: {
+      accent: '#9c4526',
+      text: '#3a3226',
+      muted: '#756750',
+      border: '#e2d7c0',
+      soft: '#f6f0e3',
+      code: '#2a241b',
+      codeText: '#f6f0e3',
+      font: '"Noto Serif SC", "Songti SC", "SimSun", serif',
+    },
+    minimal: {
+      accent: '#2563eb',
+      text: '#1f2937',
+      muted: '#64748b',
+      border: '#dbeafe',
+      soft: '#eff6ff',
+      code: '#172033',
+      codeText: '#f8fafc',
+      font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    },
+    green: {
+      accent: '#0f766e',
+      text: '#24352f',
+      muted: '#5f716a',
+      border: '#cce3d9',
+      soft: '#edf7f2',
+      code: '#18332c',
+      codeText: '#f0fdf4',
+      font: '"Noto Serif SC", "Songti SC", "SimSun", serif',
+    },
+  } as const;
+
+  type ThemeName = keyof typeof themes;
+  type StyleMap = Partial<CSSStyleDeclaration>;
+
+  function requiredElement<T extends Element>(selector: string): T {
+    const element = document.querySelector<T>(selector);
+    if (!element) throw new Error(`md2wechat 初始化失败：缺少 ${selector}`);
+    return element;
+  }
+
+  const editor = requiredElement<HTMLTextAreaElement>('#tool-markdown');
+  const preview = requiredElement<HTMLElement>('#tool-preview');
+  const themeSelect = requiredElement<HTMLSelectElement>('#tool-theme');
+  const count = requiredElement<HTMLElement>('#tool-count');
+  const status = requiredElement<HTMLElement>('#tool-status');
+  const sampleButton = requiredElement<HTMLButtonElement>('#tool-sample');
+  const copyButton = requiredElement<HTMLButtonElement>('#tool-copy');
+
+  marked.setOptions({ gfm: true, breaks: true });
+
+  function setStyles(element: Element, styles: StyleMap) {
+    if (element instanceof HTMLElement) Object.assign(element.style, styles);
+  }
+
+  function styleAll(root: HTMLElement, selector: string, styles: StyleMap) {
+    root.querySelectorAll(selector).forEach((element) => setStyles(element, styles));
+  }
+
+  function applyWechatTheme(root: HTMLElement, name: ThemeName) {
+    const theme = themes[name];
+    setStyles(root, {
+      color: theme.text,
+      fontFamily: theme.font,
+      fontSize: '16px',
+      lineHeight: '1.8',
+      letterSpacing: '0.02em',
+      wordBreak: 'break-word',
+    });
+
+    styleAll(root, 'h1', {
+      margin: '1.8em 0 1em',
+      color: theme.text,
+      fontSize: '26px',
+      lineHeight: '1.35',
+      textAlign: 'center',
+      fontWeight: '700',
+    });
+    styleAll(root, 'h2', {
+      margin: '1.8em 0 0.8em',
+      padding: '0 0 0.35em',
+      color: theme.accent,
+      borderBottom: `1px solid ${theme.border}`,
+      fontSize: '21px',
+      lineHeight: '1.45',
+      fontWeight: '700',
+    });
+    styleAll(root, 'h3', {
+      margin: '1.5em 0 0.7em',
+      color: theme.text,
+      fontSize: '18px',
+      lineHeight: '1.5',
+      fontWeight: '700',
+    });
+    styleAll(root, 'p', { margin: '1em 0' });
+    styleAll(root, 'strong', { color: theme.accent, fontWeight: '700' });
+    styleAll(root, 'a', {
+      color: theme.accent,
+      textDecoration: 'underline',
+      textDecorationColor: theme.border,
+      textUnderlineOffset: '3px',
+    });
+    styleAll(root, 'ul, ol', { margin: '1em 0', paddingLeft: '1.6em' });
+    styleAll(root, 'li', { margin: '0.35em 0' });
+    styleAll(root, 'blockquote', {
+      margin: '1.3em 0',
+      padding: '0.6em 1em',
+      color: theme.muted,
+      backgroundColor: theme.soft,
+      borderLeft: `3px solid ${theme.accent}`,
+    });
+    styleAll(root, 'blockquote p', { margin: '0.35em 0' });
+    styleAll(root, 'hr', {
+      margin: '2em auto',
+      width: '38%',
+      border: '0',
+      borderTop: `1px solid ${theme.border}`,
+    });
+    styleAll(root, 'img', {
+      display: 'block',
+      maxWidth: '100%',
+      height: 'auto',
+      margin: '1.2em auto',
+      borderRadius: '4px',
+    });
+    styleAll(root, 'pre', {
+      margin: '1.2em 0',
+      padding: '1em',
+      overflowX: 'auto',
+      color: theme.codeText,
+      backgroundColor: theme.code,
+      borderRadius: '6px',
+      fontSize: '14px',
+      lineHeight: '1.65',
+    });
+    styleAll(root, 'pre code', {
+      padding: '0',
+      color: theme.codeText,
+      backgroundColor: 'transparent',
+      border: '0',
+    });
+    styleAll(root, ':not(pre) > code', {
+      padding: '0.12em 0.35em',
+      color: theme.accent,
+      backgroundColor: theme.soft,
+      border: `1px solid ${theme.border}`,
+      borderRadius: '3px',
+      fontSize: '0.9em',
+    });
+    styleAll(root, 'table', {
+      display: 'table',
+      width: '100%',
+      maxWidth: 'none',
+      margin: '1.4em 0',
+      overflow: 'visible',
+      border: '0',
+      borderCollapse: 'collapse',
+      borderSpacing: '0',
+      borderRadius: '0',
+      backgroundColor: 'transparent',
+      fontSize: '14px',
+      lineHeight: '1.6',
+    });
+    styleAll(root, 'tbody tr', { backgroundColor: 'transparent' });
+    styleAll(root, 'th', {
+      minWidth: '0',
+      padding: '0.65em',
+      color: theme.text,
+      backgroundColor: theme.soft,
+      border: `1px solid ${theme.border}`,
+      textAlign: 'left',
+      fontWeight: '700',
+    });
+    styleAll(root, 'td', {
+      minWidth: '0',
+      padding: '0.65em',
+      color: theme.text,
+      border: `1px solid ${theme.border}`,
+      textAlign: 'left',
+      verticalAlign: 'top',
+    });
+  }
+
+  function render() {
+    const markdown = editor.value;
+    const html = marked.parse(markdown) as string;
+    preview.innerHTML = DOMPurify.sanitize(html, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'button'],
+      FORBID_ATTR: ['class', 'id', 'style'],
+    });
+
+    const themeName = themeSelect.value as ThemeName;
+    applyWechatTheme(preview, themeName);
+    preview.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
+      link.rel = 'noopener';
+      link.target = '_blank';
+    });
+
+    const characters = markdown.replace(/\s/g, '').length;
+    const lines = markdown.length === 0 ? 0 : markdown.split('\n').length;
+    count.textContent = `${characters} 字 · ${lines} 行`;
+    localStorage.setItem(STORAGE_KEY, markdown);
+    localStorage.setItem(THEME_KEY, themeName);
+    status.textContent = '已自动保存';
+  }
+
+  async function copyRichText() {
+    const html = `<section style="${preview.getAttribute('style') ?? ''}">${preview.innerHTML}</section>`;
+    const text = preview.innerText;
+
+    try {
+      if (!navigator.clipboard || !('ClipboardItem' in window)) throw new Error('浏览器不支持富文本复制');
+      const item = new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' }),
+      });
+      await navigator.clipboard.write([item]);
+      status.textContent = '已复制，可粘贴到公众号';
+      copyButton.textContent = '复制成功';
+      window.setTimeout(() => {
+        copyButton.textContent = '复制到微信公众号';
+      }, 1800);
+    } catch {
+      status.textContent = '复制失败，请使用 Chrome 或 Safari 重试';
+    }
+  }
+
+  const savedDraft = localStorage.getItem(STORAGE_KEY);
+  const savedTheme = localStorage.getItem(THEME_KEY) as ThemeName | null;
+  if (savedDraft !== null) editor.value = savedDraft;
+  if (savedTheme && savedTheme in themes) themeSelect.value = savedTheme;
+
+  editor.addEventListener('input', render);
+  themeSelect.addEventListener('change', render);
+  sampleButton.addEventListener('click', () => {
+    editor.value = editor.defaultValue;
+    render();
+    editor.focus();
+    status.textContent = '已恢复示例';
+  });
+  copyButton.addEventListener('click', copyRichText);
+  editor.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.setRangeText('  ', start, end, 'end');
+      render();
+    }
+  });
+
+  render();
+</script>

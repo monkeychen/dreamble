@@ -20,7 +20,9 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@fontsource/noto-serif-sc": "^5.0.8",
-    "astro": "^7.1.0"
+    "astro": "^7.1.0",
+    "dompurify": "^3.4.12",
+    "marked": "^18.0.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
