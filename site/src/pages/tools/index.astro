@@ -1,17 +1,20 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ToolShell from '../../components/tools/ToolShell.astro';
+import { ARTICLE_THEMES, CODE_THEMES } from '../../lib/md2wechat.mjs';
 import '../../styles/tools.css';
 
 const sample = `# 把注意力留给内容
 
 Markdown 负责结构，**md2wechat** 负责把它变成适合微信公众号的排版。
 
+[TOC]
+
 ## 为什么这样写
 
-- 左边专心写 Markdown
-- 右边实时检查最终效果
-- 完成后复制富文本，直接粘贴到公众号后台
+- [x] 左边专心写 Markdown
+- [x] 右边实时检查最终效果
+- [ ] 发布前再通读一遍
 
 > 排版不应该打断写作，它只负责让内容更容易被读懂。
 
@@ -22,6 +25,8 @@ Markdown 负责结构，**md2wechat** 负责把它变成适合微信公众号的
 | 手工调格式 | 字号、颜色、间距 | 容易反复修改 |
 | Markdown 排版 | 内容和结构 | 风格统一、可复用 |
 
+排版{工具|gōng jù}也可以显示注音，公式同样支持：$E = mc^2$。
+
 ### 一段代码
 
 \`\`\`js
@@ -29,108 +34,301 @@ const idea = "先写清楚，再排漂亮";
 console.log(idea);
 \`\`\`
 
+完整工作流会把写作和排版分开[^workflow]。
+
+[^workflow]: 草稿、主题和设置只保存在当前浏览器。
+
 [聊哉梦呓](https://simiam.com)`;
 ---
 
 <Base
   title="md2wechat · 工具 · 聊哉梦呓"
-  description="在浏览器本地把 Markdown 转为适合微信公众号粘贴的富文本"
+  description="完整的微信公众号 Markdown 排版、主题、导入导出与富文本复制工具"
   mainClass="tool-main"
 >
   <ToolShell active="md2wechat">
-    <div class="tool-heading">
-      <div>
-        <p class="tool-eyebrow">Markdown → 微信公众号</p>
-        <h1>md2wechat</h1>
-        <p>左边写 Markdown，右边看排版；完成后复制，直接粘贴到微信公众号编辑器。</p>
+    <div id="tool-app" class="tool-app">
+      <div class="tool-heading">
+        <div>
+          <p class="tool-eyebrow">Markdown → 微信公众号</p>
+          <h1>md2wechat</h1>
+          <p>写作、排版、预览、导出，一处完成；最后复制到微信公众号。</p>
+        </div>
+        <p class="tool-privacy">草稿和设置仅保存在当前浏览器。</p>
       </div>
-      <p class="tool-privacy">内容仅保存在当前浏览器，不会上传。</p>
-    </div>
 
-    <div class="tool-toolbar" aria-label="排版工具栏">
-      <label for="tool-theme">排版主题</label>
-      <select id="tool-theme">
-        <option value="magazine">旧杂志</option>
-        <option value="minimal">简约蓝</option>
-        <option value="green">清新绿</option>
-      </select>
-      <button id="tool-sample" class="tool-button tool-button-secondary" type="button">恢复示例</button>
-      <button id="tool-copy" class="tool-button tool-button-primary" type="button">复制到微信公众号</button>
-    </div>
-
-    <div class="tool-workspace">
-      <section class="tool-panel tool-editor-panel">
-        <div class="tool-panel-head">
-          <label for="tool-markdown">Markdown</label>
-          <span id="tool-count">0 字 · 0 行</span>
+      <div class="tool-commandbar" aria-label="文档与主题工具栏">
+        <div class="tool-command-group" aria-label="文件">
+          <button id="tool-new" class="tool-button tool-button-secondary" type="button">新建</button>
+          <label class="tool-button tool-button-secondary tool-file-button" for="tool-import">导入</label>
+          <input id="tool-import" class="tool-hidden-file" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" />
+          <button id="tool-export-md" class="tool-button tool-button-secondary" type="button">导出 MD</button>
+          <button id="tool-export-html" class="tool-button tool-button-secondary" type="button">导出 HTML</button>
+          <button id="tool-print" class="tool-button tool-button-secondary" type="button">打印 / PDF</button>
         </div>
-        <textarea
-          id="tool-markdown"
-          spellcheck="true"
-          aria-describedby="tool-editor-help"
-        >{sample}</textarea>
-        <p id="tool-editor-help" class="visually-hidden">输入 Markdown 后，右侧会实时显示微信公众号排版效果。</p>
-      </section>
 
-      <section class="tool-panel tool-preview-panel">
-        <div class="tool-panel-head">
-          <span>微信预览</span>
-          <span id="tool-status" role="status" aria-live="polite">已自动保存</span>
+        <div class="tool-command-group tool-theme-controls" aria-label="主题">
+          <label for="tool-theme">正文主题</label>
+          <select id="tool-theme">
+            {
+              ARTICLE_THEMES.map((theme) => (
+                <option value={theme.id}>{theme.name} · {theme.description}</option>
+              ))
+            }
+          </select>
+          <label for="tool-code-theme">代码主题</label>
+          <select id="tool-code-theme">
+            {CODE_THEMES.map((theme) => <option value={theme.id}>{theme.name}</option>)}
+          </select>
         </div>
-        <div class="tool-preview-canvas">
-          <article id="tool-preview" aria-label="Markdown 排版预览"></article>
+
+        <button id="tool-copy" class="tool-button tool-button-primary" type="button">复制到微信公众号</button>
+      </div>
+
+      <div class="tool-formatbar" aria-label="Markdown 格式工具栏">
+        <button type="button" data-action="heading" aria-label="二级标题" title="二级标题">H2</button>
+        <button type="button" data-action="bold" aria-label="加粗" title="加粗（⌘/Ctrl+B）"><strong>B</strong></button>
+        <button type="button" data-action="italic" aria-label="斜体" title="斜体（⌘/Ctrl+I）"><em>I</em></button>
+        <button type="button" data-action="strike" aria-label="删除线" title="删除线（⌘/Ctrl+U）"><s>S</s></button>
+        <button type="button" data-action="quote" aria-label="引用" title="引用">引用</button>
+        <button type="button" data-action="unordered-list" aria-label="无序列表" title="无序列表">列表</button>
+        <button type="button" data-action="ordered-list" aria-label="有序列表" title="有序列表">序号</button>
+        <button type="button" data-action="inline-code" aria-label="行内代码" title="行内代码">`code`</button>
+        <button type="button" data-action="code-block" aria-label="代码块" title="代码块">代码块</button>
+        <button type="button" data-action="link" aria-label="链接" title="链接（⌘/Ctrl+K）">链接</button>
+        <button type="button" data-action="image" aria-label="网络图片" title="插入 HTTPS 图片地址">图片 URL</button>
+        <label class="tool-format-file" for="tool-image" title="把本地图片内嵌到文稿">
+          本地图片
+          <input id="tool-image" class="tool-hidden-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" />
+        </label>
+        <button type="button" data-action="table" aria-label="表格" title="表格">表格</button>
+        <button type="button" data-action="divider" aria-label="分割线" title="分割线">分割线</button>
+        <button type="button" data-action="toc" aria-label="目录" title="根据二、三级标题生成目录">目录</button>
+        <button type="button" data-action="math" aria-label="公式" title="LaTeX 行内公式">公式</button>
+        <button type="button" data-action="ruby" aria-label="注音" title="注音语法：{文字|pīn yīn}">注音</button>
+        <span class="tool-format-spacer" aria-hidden="true"></span>
+        <button id="tool-footnotes" type="button" title="把非微信链接移到文末">外链 → 脚注</button>
+        <button id="tool-format" type="button" title="整理空行和行尾空格">整理格式</button>
+        <button id="tool-sample" type="button">恢复示例</button>
+      </div>
+
+      <details class="tool-settings">
+        <summary>样式与视图</summary>
+        <div class="tool-settings-grid">
+          <label>
+            主题色
+            <span class="tool-color-control">
+              <input id="tool-accent" type="color" value="#9c4526" />
+              <button id="tool-accent-reset" type="button">跟随主题</button>
+            </span>
+          </label>
+          <label>
+            正文字号
+            <span><input id="tool-font-size" type="range" min="14" max="20" step="1" value="16" /> <output id="tool-font-size-output">16px</output></span>
+          </label>
+          <label>
+            行高
+            <span><input id="tool-line-height" type="range" min="1.5" max="2.2" step="0.1" value="1.8" /> <output id="tool-line-height-output">1.8</output></span>
+          </label>
+          <label>
+            段间距
+            <span><input id="tool-paragraph-spacing" type="range" min="0.5" max="1.8" step="0.1" value="1" /> <output id="tool-paragraph-spacing-output">1em</output></span>
+          </label>
+          <label>
+            正文字体
+            <select id="tool-font-family">
+              <option value="theme">跟随主题</option>
+              <option value="serif">中文衬线</option>
+              <option value="sans">现代无衬线</option>
+            </select>
+          </label>
+          <label class="tool-check"><input id="tool-code-wrap" type="checkbox" checked /> 代码自动换行</label>
+          <label class="tool-check"><input id="tool-sync-scroll" type="checkbox" checked /> 编辑与预览同步滚动</label>
+          <button id="tool-settings-reset" class="tool-button tool-button-secondary" type="button">恢复默认样式</button>
         </div>
-      </section>
+      </details>
+
+      <div class="tool-viewbar" aria-label="编辑视图">
+        <div class="tool-view-switch">
+          <button type="button" data-view="split" aria-pressed="true">双栏</button>
+          <button type="button" data-view="editor" aria-pressed="false">只看编辑</button>
+          <button type="button" data-view="preview" aria-pressed="false">只看预览</button>
+        </div>
+        <button id="tool-fullscreen" type="button">全屏写作</button>
+        <span id="tool-status" role="status" aria-live="polite">已自动保存</span>
+      </div>
+
+      <div id="tool-workspace" class="tool-workspace" data-view="split">
+        <section class="tool-panel tool-editor-panel">
+          <div class="tool-panel-head">
+            <label for="tool-markdown">Markdown</label>
+            <span id="tool-count">0 字 · 0 行</span>
+          </div>
+          <textarea
+            id="tool-markdown"
+            spellcheck="true"
+            aria-describedby="tool-editor-help"
+          >{sample}</textarea>
+          <p id="tool-editor-help" class="visually-hidden">输入 Markdown 后，右侧会实时显示微信公众号排版效果。</p>
+        </section>
+
+        <section class="tool-panel tool-preview-panel">
+          <div class="tool-panel-head">
+            <span>微信预览</span>
+            <span id="tool-theme-name">旧杂志</span>
+          </div>
+          <div id="tool-preview-canvas" class="tool-preview-canvas">
+            <article id="tool-preview" aria-label="Markdown 排版预览"></article>
+          </div>
+        </section>
+      </div>
+
+      <noscript>
+        <p class="tool-noscript">md2wechat 需要浏览器启用 JavaScript 才能实时转换和复制富文本。</p>
+      </noscript>
     </div>
-
-    <noscript>
-      <p class="tool-noscript">md2wechat 需要浏览器启用 JavaScript 才能实时转换和复制富文本。</p>
-    </noscript>
   </ToolShell>
 </Base>
 
 <script>
   import DOMPurify from 'dompurify';
+  import hljs from 'highlight.js/lib/core';
   import { marked } from 'marked';
+  import { markedHighlight } from 'marked-highlight';
+  import markedKatex from 'marked-katex-extension';
+  import 'katex/dist/katex.min.css';
+  import {
+    DEFAULT_SETTINGS,
+    applyTextAction,
+    buildExportDocument,
+    convertExternalLinksToFootnotes,
+    countDocument,
+    documentTitle,
+    formatMarkdown,
+    getArticleTheme,
+    getCodeTheme,
+    normalizeSettings,
+    preprocessMarkdown,
+    safeExportFilename,
+  } from '../../lib/md2wechat.mjs';
 
-  const STORAGE_KEY = 'simiam-md2wechat-draft-v1';
-  const THEME_KEY = 'simiam-md2wechat-theme-v1';
-
-  const themes = {
-    magazine: {
-      accent: '#9c4526',
-      text: '#3a3226',
-      muted: '#756750',
-      border: '#e2d7c0',
-      soft: '#f6f0e3',
-      code: '#2a241b',
-      codeText: '#f6f0e3',
-      font: '"Noto Serif SC", "Songti SC", "SimSun", serif',
-    },
-    minimal: {
-      accent: '#2563eb',
-      text: '#1f2937',
-      muted: '#64748b',
-      border: '#dbeafe',
-      soft: '#eff6ff',
-      code: '#172033',
-      codeText: '#f8fafc',
-      font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    },
-    green: {
-      accent: '#0f766e',
-      text: '#24352f',
-      muted: '#5f716a',
-      border: '#cce3d9',
-      soft: '#edf7f2',
-      code: '#18332c',
-      codeText: '#f0fdf4',
-      font: '"Noto Serif SC", "Songti SC", "SimSun", serif',
-    },
-  } as const;
-
-  type ThemeName = keyof typeof themes;
   type StyleMap = Partial<CSSStyleDeclaration>;
+  type Settings = ReturnType<typeof normalizeSettings>;
+
+  const DRAFT_KEY = 'simiam-md2wechat-draft-v2';
+  const SETTINGS_KEY = 'simiam-md2wechat-settings-v2';
+  const LEGACY_DRAFT_KEY = 'simiam-md2wechat-draft-v1';
+  const MAX_LOCAL_IMAGE_SIZE = 2 * 1024 * 1024;
+  const SERIF_FONT = '"Noto Serif SC", "Songti SC", "SimSun", serif';
+  const SANS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif';
+  const LANGUAGE_LOADERS: Record<string, () => Promise<{ default: Parameters<typeof hljs.registerLanguage>[1] }>> = {
+    plaintext: () => import('highlight.js/lib/languages/plaintext'),
+    bash: () => import('highlight.js/lib/languages/bash'),
+    clojure: () => import('highlight.js/lib/languages/clojure'),
+    cpp: () => import('highlight.js/lib/languages/cpp'),
+    csharp: () => import('highlight.js/lib/languages/csharp'),
+    css: () => import('highlight.js/lib/languages/css'),
+    dart: () => import('highlight.js/lib/languages/dart'),
+    diff: () => import('highlight.js/lib/languages/diff'),
+    dockerfile: () => import('highlight.js/lib/languages/dockerfile'),
+    erlang: () => import('highlight.js/lib/languages/erlang'),
+    go: () => import('highlight.js/lib/languages/go'),
+    gradle: () => import('highlight.js/lib/languages/gradle'),
+    groovy: () => import('highlight.js/lib/languages/groovy'),
+    haskell: () => import('highlight.js/lib/languages/haskell'),
+    java: () => import('highlight.js/lib/languages/java'),
+    javascript: () => import('highlight.js/lib/languages/javascript'),
+    json: () => import('highlight.js/lib/languages/json'),
+    julia: () => import('highlight.js/lib/languages/julia'),
+    kotlin: () => import('highlight.js/lib/languages/kotlin'),
+    latex: () => import('highlight.js/lib/languages/latex'),
+    lisp: () => import('highlight.js/lib/languages/lisp'),
+    lua: () => import('highlight.js/lib/languages/lua'),
+    makefile: () => import('highlight.js/lib/languages/makefile'),
+    markdown: () => import('highlight.js/lib/languages/markdown'),
+    matlab: () => import('highlight.js/lib/languages/matlab'),
+    objectivec: () => import('highlight.js/lib/languages/objectivec'),
+    perl: () => import('highlight.js/lib/languages/perl'),
+    php: () => import('highlight.js/lib/languages/php'),
+    python: () => import('highlight.js/lib/languages/python'),
+    r: () => import('highlight.js/lib/languages/r'),
+    ruby: () => import('highlight.js/lib/languages/ruby'),
+    rust: () => import('highlight.js/lib/languages/rust'),
+    scala: () => import('highlight.js/lib/languages/scala'),
+    sql: () => import('highlight.js/lib/languages/sql'),
+    swift: () => import('highlight.js/lib/languages/swift'),
+    typescript: () => import('highlight.js/lib/languages/typescript'),
+    verilog: () => import('highlight.js/lib/languages/verilog'),
+    vhdl: () => import('highlight.js/lib/languages/vhdl'),
+    xml: () => import('highlight.js/lib/languages/xml'),
+    yaml: () => import('highlight.js/lib/languages/yaml'),
+  };
+  const LANGUAGE_ALIASES: Record<string, string> = {
+    c: 'cpp',
+    cs: 'csharp',
+    html: 'xml',
+    js: 'javascript',
+    md: 'markdown',
+    objc: 'objectivec',
+    shell: 'bash',
+    sh: 'bash',
+    tex: 'latex',
+    text: 'plaintext',
+    ts: 'typescript',
+  };
+  const loadingLanguages = new Map<string, Promise<void>>();
+  let renderVersion = 0;
+
+  function canonicalLanguage(language: string) {
+    const normalized = language.toLowerCase();
+    return LANGUAGE_ALIASES[normalized] ?? normalized;
+  }
+
+  function loadLanguage(language: string) {
+    const canonical = canonicalLanguage(language);
+    if (hljs.getLanguage(canonical)) return Promise.resolve();
+    const existing = loadingLanguages.get(canonical);
+    if (existing) return existing;
+    const loader = LANGUAGE_LOADERS[canonical] ?? LANGUAGE_LOADERS.plaintext;
+    const pending = loader()
+      .then((module) => {
+        hljs.registerLanguage(canonical in LANGUAGE_LOADERS ? canonical : 'plaintext', module.default);
+      })
+      .catch(async () => {
+        if (hljs.getLanguage('plaintext')) return;
+        try {
+          const fallback = await LANGUAGE_LOADERS.plaintext();
+          hljs.registerLanguage('plaintext', fallback.default);
+        } catch {
+          // 网络失败时保留未高亮代码，正文渲染不应被阻断。
+        }
+      });
+    loadingLanguages.set(canonical, pending);
+    return pending;
+  }
+
+  async function loadDocumentLanguages(markdown: string) {
+    const languages = ['plaintext'];
+    for (const match of markdown.matchAll(/^```([a-zA-Z0-9_+-]+)\s*$/gm)) languages.push(match[1]);
+    await Promise.all([...new Set(languages.map(canonicalLanguage))].map(loadLanguage));
+  }
+
+  marked.use(
+    markedHighlight({
+      langPrefix: 'hljs language-',
+      emptyLangClass: 'hljs',
+      highlight(code, language) {
+        const canonical = canonicalLanguage(language || 'plaintext');
+        if (!hljs.getLanguage(canonical) && !hljs.getLanguage('plaintext')) {
+          return code.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+        }
+        const validLanguage = hljs.getLanguage(canonical) ? canonical : 'plaintext';
+        return hljs.highlight(code, { language: validLanguage }).value;
+      },
+    }),
+  );
+  marked.use(markedKatex({ throwOnError: false, nonStandard: true }));
+  marked.setOptions({ gfm: true, breaks: true });
 
   function requiredElement<T extends Element>(selector: string): T {
     const element = document.querySelector<T>(selector);
@@ -138,17 +336,60 @@ console.log(idea);
     return element;
   }
 
+  const app = requiredElement<HTMLElement>('#tool-app');
+  const workspace = requiredElement<HTMLElement>('#tool-workspace');
   const editor = requiredElement<HTMLTextAreaElement>('#tool-markdown');
   const preview = requiredElement<HTMLElement>('#tool-preview');
+  const previewCanvas = requiredElement<HTMLElement>('#tool-preview-canvas');
   const themeSelect = requiredElement<HTMLSelectElement>('#tool-theme');
+  const codeThemeSelect = requiredElement<HTMLSelectElement>('#tool-code-theme');
   const count = requiredElement<HTMLElement>('#tool-count');
   const status = requiredElement<HTMLElement>('#tool-status');
+  const themeName = requiredElement<HTMLElement>('#tool-theme-name');
   const sampleButton = requiredElement<HTMLButtonElement>('#tool-sample');
   const copyButton = requiredElement<HTMLButtonElement>('#tool-copy');
+  const newButton = requiredElement<HTMLButtonElement>('#tool-new');
+  const importInput = requiredElement<HTMLInputElement>('#tool-import');
+  const imageInput = requiredElement<HTMLInputElement>('#tool-image');
+  const exportMarkdownButton = requiredElement<HTMLButtonElement>('#tool-export-md');
+  const exportHtmlButton = requiredElement<HTMLButtonElement>('#tool-export-html');
+  const printButton = requiredElement<HTMLButtonElement>('#tool-print');
+  const formatButton = requiredElement<HTMLButtonElement>('#tool-format');
+  const footnotesButton = requiredElement<HTMLButtonElement>('#tool-footnotes');
+  const fullscreenButton = requiredElement<HTMLButtonElement>('#tool-fullscreen');
+  const settingsResetButton = requiredElement<HTMLButtonElement>('#tool-settings-reset');
+  const accentInput = requiredElement<HTMLInputElement>('#tool-accent');
+  const accentResetButton = requiredElement<HTMLButtonElement>('#tool-accent-reset');
+  const fontSizeInput = requiredElement<HTMLInputElement>('#tool-font-size');
+  const fontSizeOutput = requiredElement<HTMLOutputElement>('#tool-font-size-output');
+  const lineHeightInput = requiredElement<HTMLInputElement>('#tool-line-height');
+  const lineHeightOutput = requiredElement<HTMLOutputElement>('#tool-line-height-output');
+  const paragraphSpacingInput = requiredElement<HTMLInputElement>('#tool-paragraph-spacing');
+  const paragraphSpacingOutput = requiredElement<HTMLOutputElement>('#tool-paragraph-spacing-output');
+  const fontFamilySelect = requiredElement<HTMLSelectElement>('#tool-font-family');
+  const codeWrapInput = requiredElement<HTMLInputElement>('#tool-code-wrap');
+  const syncScrollInput = requiredElement<HTMLInputElement>('#tool-sync-scroll');
 
-  marked.setOptions({ gfm: true, breaks: true });
+  let settings = loadSettings();
+  let syncingScroll = false;
 
-  function setStyles(element: Element, styles: StyleMap) {
+  function loadSettings(): Settings {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      const initial = normalizeSettings({
+        ...DEFAULT_SETTINGS,
+        viewMode: window.matchMedia('(max-width: 48rem)').matches ? 'editor' : 'split',
+      });
+      return initial;
+    }
+    try {
+      return normalizeSettings(JSON.parse(raw));
+    } catch {
+      return normalizeSettings();
+    }
+  }
+
+  function setStyles(element: Element | null, styles: StyleMap) {
     if (element instanceof HTMLElement) Object.assign(element.style, styles);
   }
 
@@ -156,57 +397,126 @@ console.log(idea);
     root.querySelectorAll(selector).forEach((element) => setStyles(element, styles));
   }
 
-  function applyWechatTheme(root: HTMLElement, name: ThemeName) {
-    const theme = themes[name];
+  function currentFont(themeFont: string) {
+    const choice = settings.fontFamily === 'theme' ? themeFont : settings.fontFamily;
+    return choice === 'serif' ? SERIF_FONT : SANS_FONT;
+  }
+
+  function applyVariant(root: HTMLElement, variant: string, accent: string, text: string, border: string, soft: string) {
+    const h1 = root.querySelector('h1');
+    const h2 = root.querySelectorAll('h2');
+    const h3 = root.querySelectorAll('h3');
+    const quotes = root.querySelectorAll('blockquote');
+
+    if (variant === 'editorial') {
+      setStyles(h1, { textAlign: 'center', letterSpacing: '0.08em' });
+      h2.forEach((element) => setStyles(element, { paddingBottom: '0.35em', borderBottom: `1px solid ${border}` }));
+      h3.forEach((element) => setStyles(element, { paddingLeft: '0.65em', borderLeft: `3px solid ${accent}` }));
+    } else if (variant === 'classic') {
+      setStyles(h1, { paddingLeft: '0.7em', borderLeft: `5px solid ${accent}` });
+      h2.forEach((element) => setStyles(element, { padding: '0.35em 0.65em', backgroundColor: soft, borderRadius: '3px' }));
+      h3.forEach((element) => setStyles(element, { paddingBottom: '0.3em', borderBottom: `1px dashed ${border}` }));
+    } else if (variant === 'memo') {
+      setStyles(root, { padding: '1.2em', backgroundColor: '#fffdf3', border: `1px solid ${border}` });
+      setStyles(h1, { textAlign: 'center', textDecoration: `underline solid ${accent}`, textUnderlineOffset: '0.35em' });
+      h2.forEach((element) => setStyles(element, { display: 'inline-block', padding: '0.2em 0.7em', backgroundColor: soft, boxShadow: `0.25em 0.25em 0 ${border}` }));
+      quotes.forEach((element) => setStyles(element, { border: `1px dashed ${accent}`, borderLeft: `1px dashed ${accent}` }));
+    } else if (variant === 'lake') {
+      setStyles(h1, { textAlign: 'center', color: text });
+      h2.forEach((element) => setStyles(element, { textAlign: 'center', padding: '0.45em 0', borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }));
+      h3.forEach((element) => setStyles(element, { color: accent, fontWeight: '600' }));
+      quotes.forEach((element) => setStyles(element, { borderLeftWidth: '0', borderRadius: '0.7em' }));
+    } else if (variant === 'brief') {
+      setStyles(h1, { paddingBottom: '0.45em', borderBottom: `4px solid ${accent}` });
+      h2.forEach((element) => setStyles(element, { padding: '0.3em 0.6em', color: '#ffffff', backgroundColor: accent }));
+      h3.forEach((element) => setStyles(element, { paddingLeft: '0.7em', borderLeft: `4px solid ${border}` }));
+    } else if (variant === 'minimal') {
+      setStyles(h1, { fontWeight: '800', letterSpacing: '-0.02em' });
+      h2.forEach((element) => setStyles(element, { paddingLeft: '0.6em', borderLeft: `4px solid ${accent}` }));
+      h3.forEach((element) => setStyles(element, { textDecoration: `underline solid ${border}`, textUnderlineOffset: '0.35em' }));
+      quotes.forEach((element) => setStyles(element, { backgroundColor: 'transparent', borderLeft: `2px solid ${text}` }));
+    } else if (variant === 'marker') {
+      setStyles(h1, { textAlign: 'center' });
+      h2.forEach((element) => setStyles(element, { display: 'inline-block', padding: '0 0.2em', backgroundImage: `linear-gradient(transparent 58%, ${soft} 58%)` }));
+      h3.forEach((element) => setStyles(element, { padding: '0.25em 0.55em', border: `1px solid ${border}`, borderRadius: '999px' }));
+      quotes.forEach((element) => setStyles(element, { boxShadow: `inset 0 0 0 1px ${border}` }));
+    } else if (variant === 'banner') {
+      setStyles(h1, { textAlign: 'center', color: accent });
+      h2.forEach((element) => setStyles(element, { padding: '0.35em 0.7em', color: '#ffffff', backgroundColor: accent, borderRadius: '0 999px 999px 0' }));
+      h3.forEach((element) => setStyles(element, { paddingBottom: '0.25em', borderBottom: `2px solid ${border}` }));
+    } else if (variant === 'leaf') {
+      setStyles(h1, { textAlign: 'center' });
+      h2.forEach((element) => setStyles(element, { paddingLeft: '0.7em', borderLeft: `0.45em double ${accent}` }));
+      h3.forEach((element) => setStyles(element, { padding: '0.25em 0.6em', backgroundColor: soft, borderRadius: '0.8em 0' }));
+      quotes.forEach((element) => setStyles(element, { borderRadius: '0 1em 1em 0' }));
+    } else if (variant === 'dotted') {
+      setStyles(h1, { color: accent });
+      h2.forEach((element) => setStyles(element, { paddingBottom: '0.35em', borderBottom: `3px dotted ${accent}` }));
+      h3.forEach((element) => setStyles(element, { paddingLeft: '0.6em', borderLeft: `3px dotted ${accent}` }));
+      quotes.forEach((element) => setStyles(element, { border: `1px dotted ${accent}`, borderLeft: `1px dotted ${accent}` }));
+    } else if (variant === 'card') {
+      setStyles(h1, { textAlign: 'center', color: accent });
+      h2.forEach((element) => setStyles(element, { padding: '0.5em 0.7em', backgroundColor: soft, borderLeft: `5px solid ${accent}`, borderRadius: '0.3em' }));
+      h3.forEach((element) => setStyles(element, { paddingLeft: '0.6em', borderLeft: `2px solid ${accent}` }));
+      quotes.forEach((element) => setStyles(element, { border: `1px solid ${border}`, borderLeft: `1px solid ${border}`, boxShadow: `0.2em 0.2em 0 ${soft}` }));
+    } else if (variant === 'underline') {
+      setStyles(h1, { color: accent });
+      h2.forEach((element) => setStyles(element, { paddingBottom: '0.3em', borderBottom: `4px solid ${accent}` }));
+      h3.forEach((element) => setStyles(element, { display: 'inline-block', padding: '0.2em 0.55em', color: '#ffffff', backgroundColor: accent }));
+      quotes.forEach((element) => setStyles(element, { borderLeft: `5px solid ${accent}` }));
+    }
+  }
+
+  function applyArticleTheme(root: HTMLElement) {
+    const theme = getArticleTheme(settings.theme);
+    const accent = settings.accent || theme.accent;
     setStyles(root, {
       color: theme.text,
-      fontFamily: theme.font,
-      fontSize: '16px',
-      lineHeight: '1.8',
+      backgroundColor: theme.paper,
+      fontFamily: currentFont(theme.font),
+      fontSize: `${settings.fontSize}px`,
+      lineHeight: String(settings.lineHeight),
       letterSpacing: '0.02em',
       wordBreak: 'break-word',
     });
-
     styleAll(root, 'h1', {
       margin: '1.8em 0 1em',
       color: theme.text,
-      fontSize: '26px',
+      fontSize: '1.75em',
       lineHeight: '1.35',
-      textAlign: 'center',
       fontWeight: '700',
     });
     styleAll(root, 'h2', {
       margin: '1.8em 0 0.8em',
-      padding: '0 0 0.35em',
-      color: theme.accent,
-      borderBottom: `1px solid ${theme.border}`,
-      fontSize: '21px',
+      color: accent,
+      fontSize: '1.35em',
       lineHeight: '1.45',
       fontWeight: '700',
     });
     styleAll(root, 'h3', {
       margin: '1.5em 0 0.7em',
       color: theme.text,
-      fontSize: '18px',
+      fontSize: '1.12em',
       lineHeight: '1.5',
       fontWeight: '700',
     });
-    styleAll(root, 'p', { margin: '1em 0' });
-    styleAll(root, 'strong', { color: theme.accent, fontWeight: '700' });
+    styleAll(root, 'p', { margin: `${settings.paragraphSpacing}em 0` });
+    styleAll(root, 'strong', { color: accent, fontWeight: '700' });
+    styleAll(root, 'em', { color: theme.muted });
     styleAll(root, 'a', {
-      color: theme.accent,
+      color: accent,
       textDecoration: 'underline',
       textDecorationColor: theme.border,
       textUnderlineOffset: '3px',
     });
-    styleAll(root, 'ul, ol', { margin: '1em 0', paddingLeft: '1.6em' });
-    styleAll(root, 'li', { margin: '0.35em 0' });
+    styleAll(root, 'ul, ol', { margin: `${settings.paragraphSpacing}em 0`, paddingLeft: '1.65em' });
+    styleAll(root, 'li', { margin: '0.38em 0', paddingLeft: '0.15em' });
     styleAll(root, 'blockquote', {
       margin: '1.3em 0',
-      padding: '0.6em 1em',
+      padding: '0.7em 1em',
       color: theme.muted,
       backgroundColor: theme.soft,
-      borderLeft: `3px solid ${theme.accent}`,
+      borderLeft: `4px solid ${accent}`,
     });
     styleAll(root, 'blockquote p', { margin: '0.35em 0' });
     styleAll(root, 'hr', {
@@ -222,25 +532,11 @@ console.log(idea);
       margin: '1.2em auto',
       borderRadius: '4px',
     });
-    styleAll(root, 'pre', {
-      margin: '1.2em 0',
-      padding: '1em',
-      overflowX: 'auto',
-      color: theme.codeText,
-      backgroundColor: theme.code,
-      borderRadius: '6px',
-      fontSize: '14px',
-      lineHeight: '1.65',
-    });
-    styleAll(root, 'pre code', {
-      padding: '0',
-      color: theme.codeText,
-      backgroundColor: 'transparent',
-      border: '0',
-    });
+    styleAll(root, 'figure', { margin: '1.4em 0', textAlign: 'center' });
+    styleAll(root, 'figcaption', { marginTop: '0.55em', color: theme.muted, fontSize: '0.82em' });
     styleAll(root, ':not(pre) > code', {
       padding: '0.12em 0.35em',
-      color: theme.accent,
+      color: accent,
       backgroundColor: theme.soft,
       border: `1px solid ${theme.border}`,
       borderRadius: '3px',
@@ -251,18 +547,14 @@ console.log(idea);
       width: '100%',
       maxWidth: 'none',
       margin: '1.4em 0',
-      overflow: 'visible',
       border: '0',
       borderCollapse: 'collapse',
       borderSpacing: '0',
-      borderRadius: '0',
       backgroundColor: 'transparent',
-      fontSize: '14px',
+      fontSize: '0.88em',
       lineHeight: '1.6',
     });
-    styleAll(root, 'tbody tr', { backgroundColor: 'transparent' });
     styleAll(root, 'th', {
-      minWidth: '0',
       padding: '0.65em',
       color: theme.text,
       backgroundColor: theme.soft,
@@ -271,89 +563,416 @@ console.log(idea);
       fontWeight: '700',
     });
     styleAll(root, 'td', {
-      minWidth: '0',
       padding: '0.65em',
       color: theme.text,
       border: `1px solid ${theme.border}`,
       textAlign: 'left',
       verticalAlign: 'top',
     });
+    styleAll(root, 'input[type="checkbox"]', {
+      marginRight: '0.45em',
+      accentColor: accent,
+    });
+    styleAll(root, 'sup', { color: accent, fontSize: '0.72em', verticalAlign: 'super' });
+    styleAll(root, 'ruby', { color: theme.text });
+    styleAll(root, 'rt', { color: theme.muted, fontSize: '0.58em' });
+    applyVariant(root, theme.variant, accent, theme.text, theme.border, theme.soft);
   }
 
-  function render() {
-    const markdown = editor.value;
-    const html = marked.parse(markdown) as string;
-    preview.innerHTML = DOMPurify.sanitize(html, {
-      USE_PROFILES: { html: true },
-      FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'button'],
-      FORBID_ATTR: ['class', 'id', 'style'],
+  function decorateCodeBlocks(root: HTMLElement) {
+    const codeTheme = getCodeTheme(settings.codeTheme);
+    root.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+      const code = pre.querySelector('code');
+      const languageClass = [...(code?.classList ?? [])].find((name) => name.startsWith('language-'));
+      const language = languageClass?.replace('language-', '') || 'text';
+      const header = document.createElement('span');
+      header.dataset.codeHeader = 'true';
+      header.setAttribute('aria-hidden', 'true');
+      header.textContent = settings.codeTheme === 'mac' ? `●  ●  ●   ${language}` : language.toUpperCase();
+      setStyles(header, {
+        display: 'block',
+        margin: '-0.15em 0 0.75em',
+        color: settings.codeTheme === 'mac' ? '#8fa0b8' : codeTheme.comment,
+        fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace',
+        fontSize: '11px',
+        lineHeight: '1.4',
+        letterSpacing: settings.codeTheme === 'mac' ? '0.08em' : '0.12em',
+      });
+      pre.prepend(header);
+      setStyles(pre, {
+        margin: '1.2em 0',
+        padding: '1em',
+        overflowX: settings.codeWrap ? 'hidden' : 'auto',
+        color: codeTheme.text,
+        backgroundColor: codeTheme.background,
+        border: `1px solid ${codeTheme.border}`,
+        borderRadius: settings.codeTheme === 'mac' ? '9px' : '6px',
+        fontSize: '0.86em',
+        lineHeight: '1.65',
+        whiteSpace: settings.codeWrap ? 'pre-wrap' : 'pre',
+        wordBreak: settings.codeWrap ? 'break-word' : 'normal',
+      });
+      if (code) {
+        setStyles(code, {
+          display: 'block',
+          padding: '0',
+          color: codeTheme.text,
+          backgroundColor: 'transparent',
+          border: '0',
+          fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace',
+          whiteSpace: 'inherit',
+        });
+      }
     });
 
-    const themeName = themeSelect.value as ThemeName;
-    applyWechatTheme(preview, themeName);
+    styleAll(root, '.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-literal', { color: codeTheme.keyword });
+    styleAll(root, '.hljs-string, .hljs-regexp, .hljs-attribute', { color: codeTheme.string });
+    styleAll(root, '.hljs-comment, .hljs-quote', { color: codeTheme.comment, fontStyle: 'italic' });
+    styleAll(root, '.hljs-number, .hljs-symbol, .hljs-bullet', { color: codeTheme.number });
+    styleAll(root, '.hljs-title, .hljs-section, .hljs-function', { color: codeTheme.title });
+    styleAll(root, '.hljs-meta, .hljs-type, .hljs-variable, .hljs-template-variable', { color: codeTheme.meta });
+    styleAll(root, '.hljs-addition', { color: codeTheme.addition });
+    styleAll(root, '.hljs-deletion', { color: codeTheme.deletion });
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(DRAFT_KEY, editor.value);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      status.textContent = '已自动保存';
+    } catch {
+      status.textContent = '草稿过大，已保留在页面；请先导出 MD 备份';
+    }
+  }
+
+  async function render(message = '') {
+    const version = ++renderVersion;
+    const markdown = editor.value;
+    await loadDocumentLanguages(markdown);
+    if (version !== renderVersion) return;
+    const source = preprocessMarkdown(markdown);
+    const html = marked.parse(source) as string;
+    preview.innerHTML = DOMPurify.sanitize(html, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'button', 'textarea', 'select'],
+      FORBID_ATTR: ['style'],
+      ALLOW_DATA_ATTR: true,
+    });
+
+    preview.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((checkbox) => {
+      checkbox.disabled = true;
+    });
     preview.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
       link.rel = 'noopener';
       link.target = '_blank';
     });
+    applyArticleTheme(preview);
+    decorateCodeBlocks(preview);
 
-    const characters = markdown.replace(/\s/g, '').length;
-    const lines = markdown.length === 0 ? 0 : markdown.split('\n').length;
-    count.textContent = `${characters} 字 · ${lines} 行`;
-    localStorage.setItem(STORAGE_KEY, markdown);
-    localStorage.setItem(THEME_KEY, themeName);
-    status.textContent = '已自动保存';
+    const stats = countDocument(markdown);
+    count.textContent = `${stats.characters} 字 · ${stats.lines} 行`;
+    themeName.textContent = `${getArticleTheme(settings.theme).name} · ${getCodeTheme(settings.codeTheme).name}`;
+    saveState();
+    if (message) status.textContent = message;
+  }
+
+  const KATEX_INLINE_PROPERTIES = [
+    'display', 'position', 'top', 'left', 'right', 'bottom', 'width', 'height',
+    'margin', 'padding', 'border', 'box-sizing', 'overflow', 'vertical-align',
+    'font-family', 'font-size', 'font-style', 'font-weight', 'line-height',
+    'letter-spacing', 'text-align', 'white-space', 'color', 'background-color',
+    'transform', 'transform-origin',
+  ];
+
+  function inlineKatexStyles(source: HTMLElement, clone: HTMLElement) {
+    const sourceNodes = [source, ...source.querySelectorAll<HTMLElement>('.katex, .katex *')];
+    const cloneNodes = [clone, ...clone.querySelectorAll<HTMLElement>('.katex, .katex *')];
+    sourceNodes.forEach((node, index) => {
+      if (!node.matches?.('.katex, .katex *')) return;
+      const target = cloneNodes[index];
+      if (!target) return;
+      const computed = getComputedStyle(node);
+      KATEX_INLINE_PROPERTIES.forEach((property) => {
+        const value = computed.getPropertyValue(property);
+        if (value) target.style.setProperty(property, value);
+      });
+    });
   }
 
   function buildClipboardHtml() {
+    const clone = preview.cloneNode(true) as HTMLElement;
+    inlineKatexStyles(preview, clone);
+    clone.querySelectorAll('*').forEach((element) => {
+      element.removeAttribute('class');
+      element.removeAttribute('id');
+      [...element.attributes].forEach((attribute) => {
+        if (attribute.name.startsWith('data-')) element.removeAttribute(attribute.name);
+      });
+    });
     const wrapper = document.createElement('section');
     wrapper.style.cssText = preview.style.cssText;
-    wrapper.innerHTML = preview.innerHTML;
+    wrapper.innerHTML = clone.innerHTML;
     return wrapper.outerHTML;
   }
 
   async function copyRichText() {
     const html = buildClipboardHtml();
     const text = preview.innerText;
-
     try {
-      if (!navigator.clipboard || !('ClipboardItem' in window)) throw new Error('浏览器不支持富文本复制');
+      if (!navigator.clipboard || !('ClipboardItem' in window)) throw new Error('rich clipboard unavailable');
       const item = new ClipboardItem({
         'text/html': new Blob([html], { type: 'text/html' }),
         'text/plain': new Blob([text], { type: 'text/plain' }),
       });
       await navigator.clipboard.write([item]);
-      status.textContent = '已复制，可粘贴到公众号';
+      status.textContent = '已复制，可粘贴到微信公众号';
       copyButton.textContent = '复制成功';
       window.setTimeout(() => {
         copyButton.textContent = '复制到微信公众号';
       }, 1800);
     } catch {
-      status.textContent = '复制失败，请使用 Chrome 或 Safari 重试';
+      status.textContent = '复制失败，请使用最新版 Chrome 或 Safari，并允许剪贴板权限后重试';
     }
   }
 
-  const savedDraft = localStorage.getItem(STORAGE_KEY);
-  const savedTheme = localStorage.getItem(THEME_KEY) as ThemeName | null;
-  if (savedDraft !== null) editor.value = savedDraft;
-  if (savedTheme && savedTheme in themes) themeSelect.value = savedTheme;
+  function downloadBlob(content: BlobPart, type: string, filename: string) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
-  editor.addEventListener('input', render);
-  themeSelect.addEventListener('change', render);
+  function exportMarkdown() {
+    const title = documentTitle(editor.value);
+    downloadBlob(editor.value, 'text/markdown;charset=utf-8', safeExportFilename(title, 'md'));
+    status.textContent = 'Markdown 已导出';
+  }
+
+  function exportHtml() {
+    const title = documentTitle(editor.value);
+    const documentHtml = buildExportDocument(title, buildClipboardHtml());
+    downloadBlob(documentHtml, 'text/html;charset=utf-8', safeExportFilename(title, 'html'));
+    status.textContent = '带当前排版的 HTML 已导出';
+  }
+
+  function printDocument() {
+    const title = documentTitle(editor.value);
+    const printUrl = URL.createObjectURL(new Blob(
+      [buildExportDocument(title, buildClipboardHtml())],
+      { type: 'text/html;charset=utf-8' },
+    ));
+    const printWindow = window.open(printUrl, '_blank', 'noopener,noreferrer');
+    if (!printWindow) {
+      URL.revokeObjectURL(printUrl);
+      status.textContent = '浏览器拦截了打印窗口，请允许本站弹出窗口后重试';
+      return;
+    }
+    printWindow.addEventListener('load', () => {
+      URL.revokeObjectURL(printUrl);
+      printWindow.print();
+    }, { once: true });
+    status.textContent = '已打开打印窗口，可选择“存储为 PDF”';
+  }
+
+  function applyEditorAction(action: string) {
+    const result = applyTextAction(editor.value, editor.selectionStart, editor.selectionEnd, action);
+    editor.value = result.value;
+    editor.focus();
+    editor.setSelectionRange(result.selectionStart, result.selectionEnd);
+    render();
+  }
+
+  function applyControls() {
+    themeSelect.value = settings.theme;
+    codeThemeSelect.value = settings.codeTheme;
+    const theme = getArticleTheme(settings.theme);
+    accentInput.value = settings.accent || theme.accent;
+    fontSizeInput.value = String(settings.fontSize);
+    lineHeightInput.value = String(settings.lineHeight);
+    paragraphSpacingInput.value = String(settings.paragraphSpacing);
+    fontFamilySelect.value = settings.fontFamily;
+    codeWrapInput.checked = settings.codeWrap;
+    syncScrollInput.checked = settings.syncScroll;
+    fontSizeOutput.value = `${settings.fontSize}px`;
+    lineHeightOutput.value = String(settings.lineHeight);
+    paragraphSpacingOutput.value = `${settings.paragraphSpacing}em`;
+    setView(settings.viewMode);
+  }
+
+  function readControls() {
+    settings = normalizeSettings({
+      ...settings,
+      theme: themeSelect.value,
+      codeTheme: codeThemeSelect.value,
+      fontSize: fontSizeInput.value,
+      lineHeight: lineHeightInput.value,
+      paragraphSpacing: paragraphSpacingInput.value,
+      fontFamily: fontFamilySelect.value,
+      codeWrap: codeWrapInput.checked,
+      syncScroll: syncScrollInput.checked,
+    });
+    applyControls();
+    render();
+  }
+
+  function setView(viewMode: string) {
+    settings = normalizeSettings({ ...settings, viewMode });
+    workspace.dataset.view = settings.viewMode;
+    document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.view === settings.viewMode));
+    });
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // render() 会给出可行动的存储提示。
+    }
+  }
+
+  function syncFrom(source: HTMLElement, target: HTMLElement) {
+    if (!settings.syncScroll || syncingScroll) return;
+    const sourceRange = source.scrollHeight - source.clientHeight;
+    const targetRange = target.scrollHeight - target.clientHeight;
+    if (sourceRange <= 0 || targetRange <= 0) return;
+    syncingScroll = true;
+    target.scrollTop = (source.scrollTop / sourceRange) * targetRange;
+    window.requestAnimationFrame(() => {
+      syncingScroll = false;
+    });
+  }
+
+  const savedDraft = localStorage.getItem(DRAFT_KEY) ?? localStorage.getItem(LEGACY_DRAFT_KEY);
+  if (savedDraft !== null) editor.value = savedDraft;
+  applyControls();
+
+  editor.addEventListener('input', () => render());
+  editor.addEventListener('scroll', () => syncFrom(editor, previewCanvas));
+  previewCanvas.addEventListener('scroll', () => syncFrom(previewCanvas, editor));
+  themeSelect.addEventListener('change', () => {
+    settings = normalizeSettings({ ...settings, theme: themeSelect.value, accent: '' });
+    applyControls();
+    render();
+  });
+  codeThemeSelect.addEventListener('change', readControls);
+  [fontSizeInput, lineHeightInput, paragraphSpacingInput].forEach((input) => input.addEventListener('input', readControls));
+  [fontFamilySelect, codeWrapInput, syncScrollInput].forEach((input) => input.addEventListener('change', readControls));
+  accentInput.addEventListener('input', () => {
+    settings = normalizeSettings({ ...settings, accent: accentInput.value });
+    render();
+  });
+  accentResetButton.addEventListener('click', () => {
+    settings = normalizeSettings({ ...settings, accent: '' });
+    applyControls();
+    render('主题色已恢复为当前主题默认值');
+  });
+  settingsResetButton.addEventListener('click', () => {
+    settings = normalizeSettings({ ...DEFAULT_SETTINGS, viewMode: settings.viewMode });
+    applyControls();
+    render('样式已恢复默认值');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-action]').forEach((button) => {
+    button.addEventListener('click', () => applyEditorAction(button.dataset.action ?? ''));
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
+    button.addEventListener('click', () => setView(button.dataset.view ?? 'split'));
+  });
+
   sampleButton.addEventListener('click', () => {
     editor.value = editor.defaultValue;
-    render();
+    render('已恢复完整功能示例');
     editor.focus();
-    status.textContent = '已恢复示例';
+  });
+  newButton.addEventListener('click', () => {
+    if (editor.value.trim() && !window.confirm('新建会清空当前编辑区。草稿仍可先导出 MD 备份，继续吗？')) return;
+    editor.value = '';
+    render('已新建空白文稿');
+    editor.focus();
+  });
+  formatButton.addEventListener('click', () => {
+    editor.value = formatMarkdown(editor.value);
+    render('已整理空行和行尾空格');
+    editor.focus();
+  });
+  footnotesButton.addEventListener('click', () => {
+    const converted = convertExternalLinksToFootnotes(editor.value);
+    if (converted === editor.value) {
+      status.textContent = '没有需要转换的站外链接';
+      return;
+    }
+    editor.value = converted;
+    render('站外链接已移到文末脚注，微信文章链接保持原样');
   });
   copyButton.addEventListener('click', copyRichText);
+  exportMarkdownButton.addEventListener('click', exportMarkdown);
+  exportHtmlButton.addEventListener('click', exportHtml);
+  printButton.addEventListener('click', printDocument);
+
+  importInput.addEventListener('change', async () => {
+    const file = importInput.files?.[0];
+    if (!file) return;
+    try {
+      editor.value = await file.text();
+      render(`已导入 ${file.name}`);
+      editor.focus();
+    } catch {
+      status.textContent = '文件读取失败，请确认文件为 UTF-8 文本';
+    } finally {
+      importInput.value = '';
+    }
+  });
+
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_LOCAL_IMAGE_SIZE) {
+      status.textContent = '图片超过 2MB，请压缩后再导入，或改用 HTTPS 图片地址';
+      imageInput.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      const alt = file.name.replace(/\.[^.]+$/, '').replace(/[\][()]/g, '') || '图片';
+      const markdown = `![${alt}](${String(reader.result)})`;
+      editor.setRangeText(markdown, editor.selectionStart, editor.selectionEnd, 'end');
+      render(`已内嵌 ${file.name}；建议导出 MD 备份`);
+      editor.focus();
+      imageInput.value = '';
+    });
+    reader.addEventListener('error', () => {
+      status.textContent = '图片读取失败，请换一张图片重试';
+      imageInput.value = '';
+    });
+    reader.readAsDataURL(file);
+  });
+
+  fullscreenButton.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await app.requestFullscreen();
+    } catch {
+      status.textContent = '浏览器未允许全屏，请使用页面视图切换';
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    app.classList.toggle('is-fullscreen', Boolean(document.fullscreenElement));
+    fullscreenButton.textContent = document.fullscreenElement ? '退出全屏' : '全屏写作';
+  });
+
   editor.addEventListener('keydown', (event) => {
     if (event.key === 'Tab') {
       event.preventDefault();
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      editor.setRangeText('  ', start, end, 'end');
+      editor.setRangeText('  ', editor.selectionStart, editor.selectionEnd, 'end');
       render();
+      return;
     }
+    if (!(event.metaKey || event.ctrlKey)) return;
+    const key = event.key.toLowerCase();
+    const action = key === 'b' ? 'bold' : key === 'i' ? 'italic' : key === 'u' ? 'strike' : key === 'k' ? 'link' : '';
+    if (!action) return;
+    event.preventDefault();
+    applyEditorAction(action);
   });
 
   render();
