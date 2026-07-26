@@ -304,8 +304,15 @@ console.log(idea);
     status.textContent = '已自动保存';
   }
 
+  function buildClipboardHtml() {
+    const wrapper = document.createElement('section');
+    wrapper.style.cssText = preview.style.cssText;
+    wrapper.innerHTML = preview.innerHTML;
+    return wrapper.outerHTML;
+  }
+
   async function copyRichText() {
-    const html = `<section style="${preview.getAttribute('style') ?? ''}">${preview.innerHTML}</section>`;
+    const html = buildClipboardHtml();
     const text = preview.innerText;
 
     try {
