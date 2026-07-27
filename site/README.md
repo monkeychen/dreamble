@@ -163,6 +163,8 @@ order: 1
 | `npm run verify` | 提交/发布前完整验收：check + test + build |
 | `npm run import -- <URL> <slug>` | 导入公众号文章 |
 | `npm run publish` | 验收 → 自动 commit/push `site/` → 部署 → 线上检查 |
+| `npm run stats:setup` | 配置或修复私有流量统计面板 |
+| `npm run stats:credentials` | 查看私有统计面板地址和账号密码 |
 
 ## 架构
 
@@ -173,6 +175,12 @@ site/ 修改 → npm run publish → 完整验收 → commit/push site/ → rsyn
 ```
 
 这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，`npm run publish` 验证通过后只自动提交 `site/` 路径并推送当前 `main` 到 `origin/main`，不会夹带其他目录的未提交改动；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是服务器同步的备用机制，不包含源码，也不会改写源码仓库历史。默认 commit message 为 `Publish site updates`，可用 `PUBLISH_COMMIT_MESSAGE` 覆盖。
+
+## 私有流量统计
+
+站点使用服务器 Nginx 访问日志与 GoAccess 生成私有报告，文章页面不加载统计 JavaScript，不写 Cookie，也不请求第三方统计服务。报告地址为 `https://simiam.com/stats/`，必须使用本机 `.deploy.env` 中的账号密码访问。
+
+统计任务每 5 分钟更新一次，报告不展示访客主机列表，IP 使用最高级别匿名化，URL 查询参数被丢弃；独立站点日志每日轮转并保留 30 天。首次配置或服务器重建后执行 `npm run stats:setup`，需要查看凭据时执行 `npm run stats:credentials`。访客数用于观察趋势，不等同于精确人数。
 
 ```
 ├── content/          # 内容（文章 / 作品 / 关于页）—— 日常唯一要碰的目录

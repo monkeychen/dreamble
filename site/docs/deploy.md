@@ -30,6 +30,29 @@ rsync 不可用或同步失败时自动 fallback 到部署 Git 通道（仅把 `
 
 线上健康检查失败会以非零状态退出，并给出 nginx、DNS、HTTPS 排查方向；即使文件同步完成，也不会把网站不可访问报告为发布成功。
 
+## 私有流量统计
+
+首次启用或服务器重建后，从仓库根目录执行：
+
+```bash
+npm --prefix site run stats:setup
+```
+
+该命令会在本机 gitignored 的 `site/.deploy.env` 中补充随机统计密码，在服务器安装 GoAccess 与 `htpasswd`，配置独立访问日志、30 天轮转、每 5 分钟更新的 systemd timer，以及受 HTTP Basic Auth 保护的 `https://simiam.com/stats/`。需要查看地址和凭据时执行：
+
+```bash
+npm --prefix site run stats:credentials
+```
+
+报告生成时会丢弃 URL 查询参数、以最高级别匿名化 IP、隐藏访客主机面板；统计页面自身不写入访问日志。原始日志和认证文件只存在服务器，凭据只存在本机 `.deploy.env`，均不得提交到 Git。访客数基于日志估算，只用于趋势判断。
+
+排查命令：
+
+```bash
+ssh <服务器> systemctl status simiam-stats.timer
+ssh <服务器> systemctl status simiam-stats.service
+```
+
 ## 安全加固（建议，是否执行由站主决定）
 
 SSH 密钥已配好后，禁用密码登录（对所有用户生效，仅密钥可登录）可大幅降低被爆破风险：

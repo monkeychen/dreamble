@@ -15,7 +15,9 @@
     "preview": "astro preview",
     "test": "node --test",
     "import": "node scripts/import-wechat.mjs",
-    "publish": "bash scripts/publish.sh"
+    "publish": "bash scripts/publish.sh",
+    "stats:setup": "bash scripts/setup-stats.sh",
+    "stats:credentials": "node scripts/stats-config.mjs show-credentials"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
