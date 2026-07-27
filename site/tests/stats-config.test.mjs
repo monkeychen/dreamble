@@ -6,6 +6,7 @@ import {
   ensureStatsCredentials,
   patchNginxConfig,
   readEnvValue,
+  rotateStatsPassword,
 } from '../scripts/stats-config.mjs';
 
 test('ensureStatsCredentials 生成凭据且重复运行保持不变', () => {
@@ -16,6 +17,15 @@ test('ensureStatsCredentials 生成凭据且重复运行保持不变', () => {
   assert.equal(readEnvValue(first, 'STATS_USER'), 'stats');
   assert.equal(readEnvValue(first, 'STATS_PASSWORD'), 'fixed-secret');
   assert.equal(second, first);
+});
+
+test('rotateStatsPassword 替换旧密码并保留其他部署配置', () => {
+  const source = 'DOMAIN=simiam.com\nSTATS_USER=stats\nSTATS_PASSWORD=old-secret\n';
+  const result = rotateStatsPassword(source, 'new-secret');
+
+  assert.equal(readEnvValue(result, 'STATS_PASSWORD'), 'new-secret');
+  assert.match(result, /^DOMAIN=simiam\.com$/m);
+  assert.match(result, /^STATS_USER=stats$/m);
 });
 
 test('patchNginxConfig 在主 server 中幂等加入统计配置', () => {

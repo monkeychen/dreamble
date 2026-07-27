@@ -44,6 +44,8 @@ npm --prefix site run stats:setup
 npm --prefix site run stats:credentials
 ```
 
+需要轮换访问密码时执行 `npm --prefix site run stats:rotate-password`，命令会生成新随机密码并立即更新服务器认证文件。
+
 报告生成时会丢弃 URL 查询参数、以最高级别匿名化 IP、隐藏访客主机面板；统计页面自身不写入访问日志。原始日志和认证文件只存在服务器，凭据只存在本机 `.deploy.env`，均不得提交到 Git。访客数基于日志估算，只用于趋势判断。
 
 排查命令：

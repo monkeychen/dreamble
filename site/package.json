@@ -17,7 +17,8 @@
     "import": "node scripts/import-wechat.mjs",
     "publish": "bash scripts/publish.sh",
     "stats:setup": "bash scripts/setup-stats.sh",
-    "stats:credentials": "node scripts/stats-config.mjs show-credentials"
+    "stats:credentials": "node scripts/stats-config.mjs show-credentials",
+    "stats:rotate-password": "node scripts/stats-config.mjs rotate-credentials && bash scripts/setup-stats.sh"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

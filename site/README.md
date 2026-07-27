@@ -165,6 +165,7 @@ order: 1
 | `npm run publish` | 验收 → 自动 commit/push `site/` → 部署 → 线上检查 |
 | `npm run stats:setup` | 配置或修复私有流量统计面板 |
 | `npm run stats:credentials` | 查看私有统计面板地址和账号密码 |
+| `npm run stats:rotate-password` | 生成新密码并更新统计面板认证 |
 
 ## 架构
 
@@ -180,7 +181,7 @@ site/ 修改 → npm run publish → 完整验收 → commit/push site/ → rsyn
 
 站点使用服务器 Nginx 访问日志与 GoAccess 生成私有报告，文章页面不加载统计 JavaScript，不写 Cookie，也不请求第三方统计服务。报告地址为 `https://simiam.com/stats/`，必须使用本机 `.deploy.env` 中的账号密码访问。
 
-统计任务每 5 分钟更新一次，报告不展示访客主机列表，IP 使用最高级别匿名化，URL 查询参数被丢弃；独立站点日志每日轮转并保留 30 天。首次配置或服务器重建后执行 `npm run stats:setup`，需要查看凭据时执行 `npm run stats:credentials`。访客数用于观察趋势，不等同于精确人数。
+统计任务每 5 分钟更新一次，报告不展示访客主机列表，IP 使用最高级别匿名化，URL 查询参数被丢弃；独立站点日志每日轮转并保留 30 天。首次配置或服务器重建后执行 `npm run stats:setup`，需要查看凭据时执行 `npm run stats:credentials`，需要换密时执行 `npm run stats:rotate-password`。访客数用于观察趋势，不等同于精确人数。
 
 ```
 ├── content/          # 内容（文章 / 作品 / 关于页）—— 日常唯一要碰的目录
