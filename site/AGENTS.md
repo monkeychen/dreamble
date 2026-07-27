@@ -23,7 +23,7 @@
 - `npm run build`：内容策略校验和静态构建。
 - `npm run verify`：提交前完整验收，必须全部通过。
 - `npm run import -- <公众号文章URL> <英文slug>`：导入公众号文章。
-- `npm run publish`：完整验收后发布到服务器。
+- `npm run publish`：完整验收后自动提交并推送 `site/` 变更，再发布到服务器。
 
 ## 内容目录约定
 
@@ -49,10 +49,10 @@
 ## Git、部署与安全
 
 - commit message 使用简洁英文。
-- 站主已长期授权 `site/` 变更自动闭环：文章、作品、代码、配置、脚本、文档、依赖及其他站点文件完成修改并通过检查后，直接执行 `npm run verify` → commit → `git push origin main` → `npm run publish`，不再等待站主逐步下达 commit、push、发布命令。
+- 站主已长期授权 `site/` 变更自动闭环：文章、作品、代码、配置、脚本、文档、依赖及其他站点文件完成修改后，直接执行 `npm run publish`，由发布命令依次完成 `npm run verify` → commit `site/` 变更 → `git push origin main` → 部署 → 线上健康检查，不再等待站主逐步下达 commit、push、发布命令。
 - 上述授权覆盖当前任务涉及的全部 `site/` 变更；工作区存在其他任务或 `site/` 之外的无关改动时，只提交当前任务文件，不能静默夹带。
 - 源码 Git 与部署 Git 是两个相互独立的通道：
-  - 源码 Git 指 `dreamble` 仓库及其 `origin`；`site/` 任务按上述自动闭环授权执行 `git push origin main`，其他范围仍按仓库根目录规则或站主当次要求处理。
+  - 源码 Git 指 `dreamble` 仓库及其 `origin`；`npm run publish` 只自动暂存和提交 `site/` 路径，但会推送当前 `main` 到 `origin/main`。`site/` 之外的未提交改动保持原状，其他范围仍按仓库根目录规则或站主当次要求处理。
   - 部署 Git fallback 指 `npm run publish` 在 rsync 不可用或被强制禁用时，把构建后的 `dist/` 临时初始化为 Git 仓库并推送到服务器 bare repo。它不推送源码、不改写源码仓库历史，是发布命令内置且允许执行的同步通道。
 - 服务器地址、账号只放在 gitignored 的 `.deploy.env`；密码、密钥、token 不进入仓库。
 - 发布后的站点健康检查失败必须以非零状态退出，不能把“同步完成”冒充“发布成功”。

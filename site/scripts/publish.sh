@@ -8,12 +8,16 @@ source .deploy.env
 : "${DEPLOY_HOST:?}" "${DEPLOY_USER:?}" "${DEPLOY_PATH:?}"
 REMOTE="${DEPLOY_USER}@${DEPLOY_HOST}"
 
-echo "==> 1/3 完整验收（内容约束、类型、测试、构建）"
+echo "==> 1/4 完整验收（内容约束、类型、测试、构建）"
 npm run verify
+
+echo "==> 2/4 提交并推送 site/ 源码"
+node scripts/sync-source.mjs
+
 rm -rf dist/.git   # 上次部署 Git fallback 失败可能残留，绝不能同步到公网
 find dist -name .DS_Store -delete   # Finder 元数据不上公网（rsync 与部署 Git fallback 都覆盖）
 
-echo "==> 2/3 同步到 ${DEPLOY_HOST}"
+echo "==> 3/4 同步到 ${DEPLOY_HOST}"
 synced=""
 if [[ "${DEPLOY_FORCE_GIT:-0}" != "1" ]] && command -v rsync >/dev/null 2>&1; then
   if rsync -az --delete --exclude=.git dist/ "${REMOTE}:${DEPLOY_PATH}/"; then
@@ -38,7 +42,7 @@ if [[ -z "$synced" ]]; then
 fi
 echo "    同步完成（通道: ${synced}）"
 
-echo "==> 3/3 线上健康检查"
+echo "==> 4/4 线上健康检查"
 SITE_URL="${SITE_URL:-https://simiam.com}"
 if curl -fsS -o /dev/null --max-time 10 "${SITE_URL}/"; then
   echo "✅ 发布成功: ${SITE_URL}"

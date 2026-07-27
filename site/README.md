@@ -162,17 +162,17 @@ order: 1
 | `npm test` | 单元测试 |
 | `npm run verify` | 提交/发布前完整验收：check + test + build |
 | `npm run import -- <URL> <slug>` | 导入公众号文章 |
-| `npm run publish` | 构建并发布到服务器（rsync 优先，失败时走部署 Git fallback） |
+| `npm run publish` | 验收 → 自动 commit/push `site/` → 部署 → 线上检查 |
 
 ## 架构
 
 Astro 静态站点。内容真源在 `dreamble` 源码仓库，服务器上只有 nginx + 静态文件，零应用进程。
 
 ```
-site/content/ 放文件 → npm run publish → 完整验收（失败则线上不变）→ rsync 同步（失败自动走部署 Git fallback）→ nginx → 线上健康检查
+site/ 修改 → npm run publish → 完整验收 → commit/push site/ → rsync 同步（失败自动走部署 Git fallback）→ nginx → 线上健康检查
 ```
 
-这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，`site/` 任务验证通过后按 `AGENTS.md` 的长期授权自动提交并推送；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是 `npm run publish` 的备用同步机制，不包含源码，也不会改写源码仓库历史。源码提交与推送由执行任务的一方在发布命令之外完成，`npm run publish` 本身只负责验收、部署和线上健康检查。
+这里有两套相互独立的 Git：源码 Git 管理整个 `dreamble` 仓库，`npm run publish` 验证通过后只自动提交 `site/` 路径并推送当前 `main` 到 `origin/main`，不会夹带其他目录的未提交改动；部署 Git fallback 只把生成的 `dist/` 临时推送到服务器 bare repo，是服务器同步的备用机制，不包含源码，也不会改写源码仓库历史。默认 commit message 为 `Publish site updates`，可用 `PUBLISH_COMMIT_MESSAGE` 覆盖。
 
 ```
 ├── content/          # 内容（文章 / 作品 / 关于页）—— 日常唯一要碰的目录

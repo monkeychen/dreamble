@@ -20,11 +20,13 @@
 
 ## 日常发布
 
-`npm --prefix site run publish` —— 内容与类型检查 → 单元测试 → 构建 → rsync 同步 → 健康检查。
+`npm --prefix site run publish` —— 内容与类型检查 → 单元测试 → 构建 → 自动提交 `site/` 变更并推送 `origin/main` → rsync 同步 → 健康检查。
 rsync 不可用或同步失败时自动 fallback 到部署 Git 通道（仅把 `dist/` 推送到服务器 bare repo，hook 自动 checkout）。
 强制验证该通道：`DEPLOY_FORCE_GIT=1 npm --prefix site run publish`
 
-部署 Git fallback 与源码 Git 无关：它不会向 `dreamble` 的 `origin` 推送，也不会把源码放到服务器。`site/` 任务验证通过后按 `AGENTS.md` 的长期授权在发布命令之外完成源码 commit 与 `git push origin main`；`npm run publish` 只负责验收、部署和线上健康检查。
+源码同步只暂存和提交 `site/` 路径，仓库其他目录的未提交改动保持原状；当前分支必须是 `main`，提交或推送失败时会在部署前停止。默认 commit message 为 `Publish site updates`，需要描述本次变更时可执行 `PUBLISH_COMMIT_MESSAGE="Describe site change" npm --prefix site run publish`。
+
+部署 Git fallback 与源码 Git 无关：源码同步把 `dreamble` 当前 `main` 推送到 GitHub；部署 fallback 只把 `dist/` 临时建库后推送到服务器 bare repo，不会把源码放到服务器，也不会改写源码历史。
 
 线上健康检查失败会以非零状态退出，并给出 nginx、DNS、HTTPS 排查方向；即使文件同步完成，也不会把网站不可访问报告为发布成功。
 
