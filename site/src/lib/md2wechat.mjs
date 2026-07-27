@@ -407,6 +407,27 @@ export function formatMarkdown(markdown) {
   return normalized ? `${normalized}\n` : '';
 }
 
+export function stripChatGptContentReferences(markdown) {
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  let fence = null;
+
+  return lines
+    .filter((line) => {
+      const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
+      if (fenceMatch) {
+        const marker = fenceMatch[1][0];
+        const length = fenceMatch[1].length;
+        if (fence === null) fence = { marker, length };
+        else if (fence.marker === marker && length >= fence.length) fence = null;
+        return true;
+      }
+
+      if (fence !== null) return true;
+      return !/^\s*::chatgpt-content-reference\{[^}\r\n]*\}\s*$/.test(line);
+    })
+    .join('\n');
+}
+
 export function convertExternalLinksToFootnotes(markdown) {
   const footnotes = [];
   const converted = markdown.replace(
@@ -439,7 +460,7 @@ function escapeHtml(value) {
 }
 
 export function preprocessMarkdown(markdown) {
-  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  const lines = stripChatGptContentReferences(markdown).split('\n');
   const definitions = new Map();
   const bodyLines = [];
 

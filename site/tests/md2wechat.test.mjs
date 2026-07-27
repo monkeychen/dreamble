@@ -12,6 +12,7 @@ import {
   normalizeSettings,
   preprocessMarkdown,
   safeExportFilename,
+  stripChatGptContentReferences,
 } from '../src/lib/md2wechat.mjs';
 
 test('md2wechat 注册 12 套完整正文主题和 7 套代码主题', () => {
@@ -93,6 +94,24 @@ test('applyTextAction 覆盖完整格式工具栏动作', () => {
 
 test('formatMarkdown 统一换行、清理行尾空格和多余空行', () => {
   assert.equal(formatMarkdown('标题  \r\n\r\n\r\n正文\t\r\n'), '标题\n\n正文\n');
+});
+
+test('stripChatGptContentReferences 清理正文占位符但保留代码示例', () => {
+  const source = `# 标题
+
+正文
+
+::chatgpt-content-reference{index="19"}
+
+\`\`\`text
+::chatgpt-content-reference{index="20"}
+\`\`\`
+`;
+  const result = stripChatGptContentReferences(source);
+
+  assert.doesNotMatch(result, /index="19"/);
+  assert.match(result, /index="20"/);
+  assert.doesNotMatch(preprocessMarkdown(source), /index="19"/);
 });
 
 test('convertExternalLinksToFootnotes 保留公众号链接并去重外链', () => {
