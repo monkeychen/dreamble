@@ -72,6 +72,7 @@ header.site nav.menu {
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 2.2rem;
   font-size: 0.85rem;
   letter-spacing: 0.2em;
