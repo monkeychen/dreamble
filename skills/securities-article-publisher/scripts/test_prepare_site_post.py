@@ -55,12 +55,12 @@ class PrepareSitePostTest(unittest.TestCase):
             self.assertIn("## 正文", output)
             self.assertTrue((destination / "imgs" / "cover.png").is_file())
 
-    def test_refuses_draft_wechat_source_combination(self) -> None:
+    def test_allows_draft_wechat_source_combination(self) -> None:
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             source = root / "article.md"
             source.write_text("正文", encoding="utf-8")
-            result = subprocess.run(
+            subprocess.run(
                 [
                     sys.executable,
                     str(SCRIPT),
@@ -76,11 +76,15 @@ class PrepareSitePostTest(unittest.TestCase):
                     "--source-wechat",
                     "--draft",
                 ],
+                check=True,
                 capture_output=True,
                 text=True,
             )
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("publicly released", result.stderr)
+            output = (
+                root / "output" / "2026-08-24-sample-stock" / "index.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("source: wechat", output)
+            self.assertIn("draft: true", output)
 
     def test_rejects_unclosed_frontmatter_without_partial_output(self) -> None:
         with TemporaryDirectory() as temp_dir:

@@ -56,9 +56,6 @@ def main() -> int:
         raise SystemExit("Slug must contain lowercase letters, digits, and single hyphens only")
     if not args.title.strip():
         raise SystemExit("Title must not be empty")
-    if args.source_wechat and args.draft:
-        raise SystemExit("Use --source-wechat only after the WeChat article is publicly released")
-
     output_root = args.output_root.resolve()
     destination = output_root / f"{args.publish_date}-{args.slug}"
     if destination.exists():

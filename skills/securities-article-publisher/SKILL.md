@@ -73,13 +73,14 @@ coverImage: ./imgs/cover.png
 1. 调用 `$baoyu-post-to-wechat`，直接传入 `article.md`；不要预先转成 HTML。
 2. 主题、主题色、账号和 API/browser 方法由该 Skill 的参数或 `EXTEND.md` 决定；没有配置时按它的首次设置流程处理。
 3. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
-4. 现有能力对“文章”完成的是**保存公众号草稿**，不是正式群发。只有看到草稿成功证据时才报告“公众号草稿已保存”，绝不写“公众号已发表”。
+4. 在本工作流中，用户所说的“发表到公众号”默认指**保存到公众号草稿箱**；只有用户明确要求正式群发时，才把它理解为群发。
+5. 只有看到草稿成功证据时才报告“公众号草稿已保存”。草稿保存成功后，网站备份即可标记 `source: wechat`；这不改变公众号侧仍处于草稿状态的事实。
 
 ## 个人站
 
 发布前阅读 `site/AGENTS.md`、`site/README.md` 和 `site/src/content.config.ts`，以当前规则为准。具体转换与状态决策见 [references/site-publishing.md](references/site-publishing.md)。
 
-1. 用 `scripts/prepare_site_post.py` 从主稿生成 `site-post/`，去掉公众号专用 frontmatter，并复制 `imgs/`。
+1. 用 `scripts/prepare_site_post.py` 从主稿生成 `site-post/`，去掉公众号专用 frontmatter，并复制 `imgs/`。公众号草稿保存成功后生成网站备份时传入 `--source-wechat`。
 2. 人工核对生成的 `index.md`、图片引用、日期、slug、摘要和标签。
 3. 获得网站发布授权后，把 `site-post/` 放入 `site/content/posts/YYYY-MM-DD-<slug>/`。
 4. 执行 `npm --prefix site run verify`。失败就修复并重验，不能跳过。

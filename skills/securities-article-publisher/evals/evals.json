@@ -47,10 +47,10 @@
     },
     {
       "id": 5,
-      "category": "公众号首发等待",
+      "category": "公众号草稿后备份",
       "prompt": "先放公众号草稿，网站作为公众号首发后的备份，现在也一起处理。",
-      "expected_output": "公众号草稿成功后，网站版本使用 draft: true 且不执行网站上线；说明公众号公开发布后再添加 source: wechat 并发布网站。",
-      "assertions": [{"name": "does-not-mislabel-wechat-source", "description": "公众号仅有草稿时不能把网站文章标记为 source: wechat 后上线。"}]
+      "expected_output": "公众号草稿保存成功后，网站版本写入 source: wechat；若网站发布已获授权，继续验证并上线，同时准确报告公众号仍是草稿状态。",
+      "assertions": [{"name": "marks-wechat-source-after-draft", "description": "公众号草稿保存成功后，网站备份应标记 source: wechat。"}]
     },
     {
       "id": 6,
