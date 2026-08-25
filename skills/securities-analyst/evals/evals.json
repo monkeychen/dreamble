@@ -31,7 +31,7 @@
       {
         "name": "表达质量",
         "points": 10,
-        "description": "中文结论清楚、专业但不堆术语，可供研究阅读或改写成公众号内容。"
+        "description": "中文结论清楚、专业但不堆术语，深度研究以自检完成的完整 Markdown 报告交付。"
       }
     ],
     "score_bands": [
@@ -366,18 +366,18 @@
     },
     {
       "id": 19,
-      "category": "公众号表达",
-      "prompt": "使用 $securities-analyst 把“黄金还能不能买”写成公众号通俗犀利型文章，但要保留数据和风险提示。",
-      "expected_output": "必须使用公众号结构：先说结论、为什么被关注、真逻辑、市场误读、估值或价格位置、能不能买、风险、最终判断；语言可以锋利但不能制造确定性；关键数据和风险必须保留。",
+      "category": "Markdown 研究报告交付",
+      "prompt": "使用 $securities-analyst 深度分析腾讯控股，完成后把研究报告交给 securities-article-publisher 使用。",
+      "expected_output": "必须由 securities-analyst 完成全部联网研究、事实核验、估值、风险和结论自检，并输出带 title、summary frontmatter 的完整 Markdown 研究报告；不得把审校、补充研究或文章重写责任交给 Publisher。",
       "files": [],
       "assertions": [
         {
-          "name": "uses-public-account-structure",
-          "description": "应切换为公众号结构，而不是券商研报结构。"
+          "name": "delivers-complete-markdown-report",
+          "description": "深度研究必须交付包含 frontmatter 和完整正文的 Markdown 报告。"
         },
         {
-          "name": "keeps-data-and-risk",
-          "description": "通俗表达不能牺牲数据、来源和风险提示。"
+          "name": "keeps-validation-upstream",
+          "description": "事实、数据、估值、风险和结论自检必须由 Analyst 完成。"
         }
       ]
     },

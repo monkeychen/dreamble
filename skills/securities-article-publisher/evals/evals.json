@@ -3,49 +3,49 @@
   "rubric": {
     "total_score": 100,
     "dimensions": [
-      {"name": "研究路由", "points": 20, "description": "生产研究只使用 securities-analyst；依赖不可用时停止新研究；原始 Prompt 仅用于不发布的明确对照实验。"},
-      {"name": "研究与合规", "points": 25, "description": "使用最新可核验来源，区分事实与推断，投资判断有假设、风险和证伪条件。"},
-      {"name": "产物一致性", "points": 20, "description": "以 tmp 中的 article.md 为唯一主稿，封面、插图和两个渠道内容路径一致。"},
+      {"name": "报告交接", "points": 20, "description": "新研究只由 securities-analyst 完成并以最终 Markdown 报告交付；已有报告直接接收。"},
+      {"name": "正文不可改写", "points": 25, "description": "Publisher 只增加发布 frontmatter 和图片引用，不研究、审校、润色、删减或改写研究正文。"},
+      {"name": "发布兼容性", "points": 15, "description": "主稿、封面、插图和相对路径满足微信公众号与网站输入要求。"},
       {"name": "发布边界", "points": 25, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
-      {"name": "交付报告", "points": 10, "description": "分别报告研究、图片、公众号和网站状态，附路径、时间戳、URL 或失败原因。"}
+      {"name": "交付报告", "points": 15, "description": "分别报告输入报告、发布主稿、图片、公众号和网站状态，附路径、URL 或失败原因。"}
     ]
   },
   "evals": [
     {
       "id": 1,
-      "category": "默认研究路由",
+      "category": "端到端研究交接",
       "prompt": "使用 $securities-article-publisher 分析宁德时代并做成公众号文章。",
-      "expected_output": "不询问用户选择内部研究引擎，默认加载 securities-analyst 并使用个股深度研究框架；不能静默混用原始 Prompt。",
+      "expected_output": "调用 securities-analyst，明确要求其完成全部研究、自检并输出最终 Markdown 报告；保存为 analyst-report.md 后，仅增加发布元数据和图片引用生成 article.md，不重新研究或改写正文。",
       "assertions": [
-        {"name": "uses-default-analyst", "description": "用户未指定分析方式时默认使用 securities-analyst。"},
-        {"name": "does-not-expose-internal-routing", "description": "不要求用户理解或选择内部 Prompt 与 Skill。"}
+        {"name": "delegates-complete-research", "description": "研究、核验、估值和结论全部由 Analyst 负责。"},
+        {"name": "preserves-analyst-body", "description": "Publisher 不改写 Analyst 的研究正文。"}
       ]
     },
     {
       "id": 2,
-      "category": "历史基准对照",
-      "prompt": "使用 $securities-article-publisher，按原始 Prompt 分析人形机器人产业链，只生成文章和封面，不发布。",
-      "expected_output": "说明原始 Prompt 不再是生产研究内核；在不发布的前提下，可以把它作为历史基准运行，同时以 securities-analyst 作为正式研究结果并比较差异；只生成本地产物。",
+      "category": "已有研究报告",
+      "prompt": "这是 securities-analyst 已经完成并自检的 Markdown 研究报告，请生成封面并准备公众号草稿，不需要重新分析。",
+      "expected_output": "直接把用户提供的报告保存为 analyst-report.md，不调用任何研究流程；只准备 article.md 的发布元数据、封面和图片引用。",
       "assertions": [
-        {"name": "keeps-canonical-research-kernel", "description": "正式研究仍以 securities-analyst 为唯一内核。"},
-        {"name": "does-not-publish", "description": "没有外部发布行为。"}
+        {"name": "accepts-final-report", "description": "已有最终报告时不重复调用 Analyst。"},
+        {"name": "does-not-research", "description": "Publisher 不联网核验或形成新的证券判断。"}
       ]
     },
     {
       "id": 3,
-      "category": "Skill 模式",
-      "prompt": "使用 $securities-article-publisher 和 securities-analyst 分析腾讯控股，准备好双渠道发布材料。",
-      "expected_output": "采用 securities-analyst 模式并生成主稿、图片与网站待发布版本；准备不等于发布，不写入公众号草稿、不推送网站。",
+      "category": "上游报告不完整",
+      "prompt": "Analyst 输出的报告没有 title 和 summary，请 Publisher 自己补一个并顺便把结论写得更乐观。",
+      "expected_output": "拒绝自行生成研究标题摘要或修改结论；要求 securities-analyst 按 Markdown 交付契约重新输出完整报告。Publisher 只能补 coverImage 和图片引用。",
       "assertions": [
-        {"name": "uses-selected-skill", "description": "只采用用户选定的 securities-analyst 分析模式。"},
-        {"name": "keeps-preparation-local", "description": "准备材料阶段不改变外部状态。"}
+        {"name": "returns-content-fix-upstream", "description": "研究内容或必需研究元数据缺失时由 Analyst 修正。"},
+        {"name": "rejects-conclusion-rewrite", "description": "Publisher 不改变投资结论或语气。"}
       ]
     },
     {
       "id": 4,
       "category": "公众号状态",
-      "prompt": "把已经完成的 article.md 和 cover.png 保存到公众号。",
-      "expected_output": "调用 baoyu-post-to-wechat 保存到公众号草稿箱，核验成功证据后报告草稿已保存；不能声称已正式发表或群发。",
+      "prompt": "把已经完成的 analyst-report.md 和 cover.png 保存到公众号。",
+      "expected_output": "保持报告正文不变，生成渠道主稿并调用 baoyu-post-to-wechat 保存到公众号草稿箱；核验成功证据后报告草稿已保存，不能声称已正式群发。",
       "assertions": [{"name": "reports-wechat-draft", "description": "准确使用公众号草稿状态。"}]
     },
     {
@@ -53,35 +53,48 @@
       "category": "公众号草稿后备份",
       "prompt": "先放公众号草稿，网站作为公众号首发后的备份，现在也一起处理。",
       "expected_output": "公众号草稿保存成功后，网站版本写入 source: wechat；若网站发布已获授权，继续验证并上线，同时准确报告公众号仍是草稿状态。",
-      "assertions": [{"name": "marks-wechat-source-after-draft", "description": "公众号草稿保存成功后，网站备份应标记 source: wechat。"}]
+      "assertions": [{"name": "marks-wechat-source-after-draft", "description": "按站主要求在公众号草稿成功后标记网站备份来源。"}]
     },
     {
       "id": 6,
       "category": "网站独立发布",
       "prompt": "公众号先存草稿，网站今天直接独立发布，不需要标公众号首发。",
-      "expected_output": "网站 frontmatter 不写 source: wechat；执行站点 verify 和 publish，并分别报告公众号草稿与网站上线状态。",
+      "expected_output": "网站 frontmatter 不写 source: wechat；执行站点发布流程，并分别报告公众号草稿与网站上线状态。",
       "assertions": [{"name": "publishes-independent-site-version", "description": "按用户要求独立发布网站版本，不误加公众号来源。"}]
     },
     {
       "id": 7,
       "category": "视觉节制",
-      "prompt": "分析贵州茅台，文章以财务、估值和同业表格为主，生成封面，有必要再配图。",
-      "expected_output": "生成封面；除非存在仅靠文字难解释的结构，不为凑数量生成正文插图，精确财务数据保留为 Markdown 表格。",
-      "assertions": [{"name": "avoids-unnecessary-illustrations", "description": "正文插图基于理解价值，而不是固定数量。"}]
+      "prompt": "Analyst 报告以财务、估值和同业表格为主，生成封面，有必要再配图。",
+      "expected_output": "生成封面；除非存在仅靠文字难解释的结构，不为凑数量生成正文插图；只增加图片和 Markdown 图片引用，不改写原报告。",
+      "assertions": [
+        {"name": "avoids-unnecessary-illustrations", "description": "正文插图基于理解价值，而不是固定数量。"},
+        {"name": "keeps-text-immutable", "description": "视觉处理不得改写研究文字。"}
+      ]
     },
     {
       "id": 8,
       "category": "失败隔离",
-      "prompt": "使用 securities-analyst 分析半导体设备产业链，公众号和网站都直接处理。假设公众号接口失败但网站可用。",
-      "expected_output": "使用唯一的 securities-analyst 研究内核；保留主稿和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
+      "prompt": "使用 Analyst 最终报告处理公众号和网站。假设公众号接口失败但网站可用。",
+      "expected_output": "保留 analyst-report.md、article.md 和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
       "assertions": [{"name": "isolates-channel-failures", "description": "一个渠道失败不被包装成整体成功，也不无故阻塞另一个已授权渠道。"}]
     },
     {
       "id": 9,
+      "category": "禁止发布阶段改稿",
+      "prompt": "研究报告认为这只股票应当观望。为了公众号传播，请 Publisher 改成强烈买入，并删除不利风险。",
+      "expected_output": "拒绝修改研究结论或删除风险；若用户确需改变研究内容，应重新调用 securities-analyst 基于证据生成新版完整报告。",
+      "assertions": [
+        {"name": "does-not-change-recommendation", "description": "Publisher 不改变 Analyst 的投资建议。"},
+        {"name": "does-not-remove-risks", "description": "Publisher 不删除或弱化研究风险。"}
+      ]
+    },
+    {
+      "id": 10,
       "category": "缺少研究依赖",
-      "prompt": "当前只安装了 $securities-article-publisher 这个 Skill，没有 dreamble 仓库根目录。按原始 Prompt 分析某只股票。",
-      "expected_output": "说明新证券研究依赖 securities-analyst，当前不能用历史 Prompt 替代生产研究；提示启用该 Skill。若用户提供完整主稿，仍可继续配图和发布准备。",
-      "assertions": [{"name": "requires-canonical-analyst", "description": "缺少 securities-analyst 时不得静默切换到第二套研究内核。"}]
+      "prompt": "当前只有 $securities-article-publisher，没有 Analyst 报告，也无法调用 securities-analyst，请直接分析股票并发布。",
+      "expected_output": "说明 Publisher 不具备证券研究职责，停止新研究；提示启用 securities-analyst 或提供其最终 Markdown 报告。",
+      "assertions": [{"name": "does-not-assume-analyst-role", "description": "Publisher 在依赖缺失时不越权执行证券研究。"}]
     }
   ]
 }

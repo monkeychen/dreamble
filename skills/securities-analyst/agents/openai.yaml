@@ -1,4 +1,4 @@
 interface:
   display_name: "证券分析师"
-  short_description: "以投资命题、经营驱动、预期差和估值交叉验证完成证券研究"
-  default_prompt: "使用 $securities-analyst 深度分析这只股票，形成投资命题、经营预测、估值、预期差、反方证据和证伪条件。"
+  short_description: "完成自检闭环的证券研究并交付完整 Markdown 报告"
+  default_prompt: "使用 $securities-analyst 深度分析这只股票，自检后输出包含来源、估值、风险和证伪条件的完整 Markdown 研究报告。"

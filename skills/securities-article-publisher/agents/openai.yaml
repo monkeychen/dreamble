@@ -1,4 +1,4 @@
 interface:
   display_name: "证券文章发布助手"
-  short_description: "完成证券深度研究、文章配图、公众号草稿与个人站发布"
-  default_prompt: "使用 $securities-article-publisher 分析我指定的股票或产业链，生成配图，并准备公众号与个人站发布。"
+  short_description: "保持研究正文不变，完成证券报告配图、公众号草稿和网站发布"
+  default_prompt: "使用 $securities-article-publisher 接收证券分析师的最终 Markdown 报告，保持研究正文不变，生成配图并准备公众号与个人站发布。"
