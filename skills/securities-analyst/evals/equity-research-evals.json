@@ -1,0 +1,183 @@
+{
+  "skill_name": "securities-analyst",
+  "suite": "equity-research-framework",
+  "fixture_policy": "evals/fixtures 只保存永久冻结、可复算的测试输入；不放实时行情或运行时临时文件。",
+  "numeric_grader": "python3 scripts/grade_equity_numeric_output.py evals/fixtures/cross-listed-scenario.json <actual-output.json> --tolerance 0.0001",
+  "rubric": {
+    "total_score": 100,
+    "dimensions": [
+      {
+        "name": "证据与时点",
+        "points": 15,
+        "description": "关键行情、财报、公告和预测口径可追溯，明确数据截止时间，事实、管理层口径、共识和推断分开。"
+      },
+      {
+        "name": "投资命题与预期差",
+        "points": 15,
+        "description": "形成可证伪的投资命题，说明市场共识、当前价格隐含预期、差异化判断和为什么是现在。"
+      },
+      {
+        "name": "业务与竞争质量",
+        "points": 10,
+        "description": "解释业务经济、价值链、竞争优势、管理层和资本配置，不复述公司简介。"
+      },
+      {
+        "name": "财务取证与驱动预测",
+        "points": 20,
+        "description": "识别盈利质量和资产负债表风险，建立经营驱动模型，用悲观、中性、乐观情景连接预测与现金流。"
+      },
+      {
+        "name": "估值与市场隐含预期",
+        "points": 20,
+        "description": "按公司类型选估值方法，完成交叉验证、敏感性和反向估值，目标价能追溯到假设。"
+      },
+      {
+        "name": "风险、催化与执行",
+        "points": 15,
+        "description": "呈现最强反方证据、风险树、催化剂、证伪条件、适用周期和跟踪指标。"
+      },
+      {
+        "name": "表达与一致性",
+        "points": 5,
+        "description": "结论明确，预测、估值、催化剂、风险和建议内部一致，不用篇幅和术语掩盖证据缺口。"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": "equity-01",
+      "category": "质量复利型",
+      "prompt": "使用 $securities-analyst 深度分析贵州茅台，回答当前价格是否适合未来三年的长期配置。",
+      "expected_output": "必须形成投资命题卡；核验最新披露和行情；把销量、吨价、产品结构、渠道库存、毛利率、现金流和分红作为驱动；比较历史与同业估值并反推当前价格隐含的增长；给三情景价值区间、最强反方证据和证伪条件。",
+      "assertions": [
+        {"name": "builds-driver-model", "description": "预测必须由量价、产品结构、渠道和利润率驱动，而不是外推历史增速。"},
+        {"name": "extracts-market-expectations", "description": "必须说明当前价格隐含的增长和回报要求。"},
+        {"name": "tests-compounding-quality", "description": "必须检查 ROIC、现金流、资本配置和每股价值增长。"}
+      ]
+    },
+    {
+      "id": "equity-02",
+      "category": "成长周期型",
+      "prompt": "使用 $securities-analyst 深度分析一家半导体设备公司，判断当前上涨是业绩兑现还是估值透支。",
+      "expected_output": "必须同时分析长期国产替代和短期资本开支/订单周期；建立订单、交付、收入确认、毛利率和研发投入驱动；区分在手订单、意向订单和市场传闻；用周期中枢与成长溢价交叉估值并完成反向估值。",
+      "assertions": [
+        {"name": "separates-growth-and-cycle", "description": "不得把短期订单周期直接当作长期成长。"},
+        {"name": "links-orders-to-revenue", "description": "必须说明订单到交付、收入和现金流的转换。"},
+        {"name": "uses-reverse-valuation", "description": "必须反推当前市值隐含的份额、增速或利润率。"}
+      ]
+    },
+    {
+      "id": "equity-03",
+      "category": "强周期型",
+      "prompt": "使用 $securities-analyst 分析一家静态 PE 很低的化工公司，判断是低估还是周期顶部陷阱。",
+      "expected_output": "必须识别产品价格、价差、库存、供需、产能投放、成本曲线和资本开支周期；测算底部、中枢、顶部利润；不得用静态 PE 直接判定低估；给价格敏感性、反转确认信号和下行情景。",
+      "assertions": [
+        {"name": "normalizes-cycle-earnings", "description": "必须使用周期中枢利润并区分顶部和底部。"},
+        {"name": "models-price-sensitivity", "description": "必须展示产品价格或价差变化对利润和估值的影响。"},
+        {"name": "avoids-low-pe-trap", "description": "不能因静态 PE 低直接给买入结论。"}
+      ]
+    },
+    {
+      "id": "equity-04",
+      "category": "平台与分部估值",
+      "prompt": "使用 $securities-analyst 分析小米集团汽车业务是否足以带来估值重构。",
+      "expected_output": "必须分拆手机、IoT、互联网和汽车业务；建立交付量、单车收入、毛利率、资本开支和现金消耗情景；采用分部估值并对汽车业务做概率加权；反推当前估值已经计入多少汽车销量和利润。",
+      "assertions": [
+        {"name": "uses-sotp", "description": "必须对成熟业务和汽车期权分别估值。"},
+        {"name": "models-option-probability", "description": "尚未稳定盈利的新业务必须概率加权。"},
+        {"name": "bridges-to-current-price", "description": "必须解释当前价格中汽车业务的隐含价值。"}
+      ]
+    },
+    {
+      "id": "equity-05",
+      "category": "金融型",
+      "prompt": "使用 $securities-analyst 深度分析一家银行，判断高股息是否可持续。",
+      "expected_output": "必须使用净息差、资产质量、信用成本、拨备、资本充足率、ROE 和分红覆盖分析；采用 PB-ROE、股息率等匹配方法；检查分红对资本和盈利的约束，不能套工业公司的自由现金流框架。",
+      "assertions": [
+        {"name": "uses-bank-specific-drivers", "description": "必须使用银行特有的盈利和风险驱动。"},
+        {"name": "tests-dividend-sustainability", "description": "必须检查盈利、资本和监管约束下的分红覆盖。"},
+        {"name": "avoids-industrial-valuation", "description": "不得机械套用普通工业公司的估值模型。"}
+      ]
+    },
+    {
+      "id": "equity-06",
+      "category": "未盈利研发型",
+      "prompt": "使用 $securities-analyst 分析一家尚未盈利、只有两条临床管线的创新药公司。",
+      "expected_output": "必须核验现金、烧钱速度、融资和稀释风险；按适应症、临床阶段、成功概率、上市时间、峰值销售和分成拆分管线；使用风险调整 NPV 或概率加权估值，不得使用 PE；给关键里程碑和失败情景。",
+      "assertions": [
+        {"name": "uses-rnpv", "description": "必须使用管线概率和现金流匹配的估值。"},
+        {"name": "models-cash-runway", "description": "必须测算现金跑道、融资需求和潜在稀释。"},
+        {"name": "avoids-pe", "description": "未盈利研发公司不得使用 PE。"}
+      ]
+    },
+    {
+      "id": "equity-07",
+      "category": "财务取证",
+      "prompt": "使用 $securities-analyst 分析一家公司：过去三年利润高速增长，但经营现金流持续下降，应收和存货增长明显快于收入。",
+      "expected_output": "必须把现金流背离、应收、存货、收入确认、减值、关联交易和审计意见列为优先核验项；降低盈利预测和估值置信度；在排除收入质量或渠道压货问题前不得给高置信度买入结论。",
+      "assertions": [
+        {"name": "detects-earnings-quality-risk", "description": "必须识别利润与现金流背离。"},
+        {"name": "checks-accounting-footnotes", "description": "必须回到附注、会计政策和审计信息核验。"},
+        {"name": "reduces-conclusion-strength", "description": "重大财务红旗未解决时必须降低结论强度。"}
+      ]
+    },
+    {
+      "id": "equity-08",
+      "category": "预期差",
+      "prompt": "使用 $securities-analyst 分析一家公认的好公司，市场也一致看好，为什么股价仍可能没有超额收益？",
+      "expected_output": "必须区分公司质量和股票回报；分析当前价格隐含的增长、利润率和 ROIC；说明超额收益来自预期修正而不是好公司标签；列出需要超预期的变量、催化剂和估值压缩风险。",
+      "assertions": [
+        {"name": "separates-company-and-stock", "description": "必须区分好公司与好股票。"},
+        {"name": "focuses-on-expectation-revisions", "description": "必须解释市场预期修正如何影响回报。"},
+        {"name": "identifies-valuation-risk", "description": "必须识别高预期下的估值压缩风险。"}
+      ]
+    },
+    {
+      "id": "equity-09",
+      "category": "证据不足",
+      "prompt": "使用 $securities-analyst 分析某只股票，但无法取得最新股价、最新财报和准确股本，仍然给我一个精确目标价。",
+      "expected_output": "必须拒绝伪精确目标价；说明缺少的关键口径及其对估值的影响；可以提供研究框架、条件化情景和待核验清单，但结论应标记为低置信度或暂不支持明确操作结论。",
+      "assertions": [
+        {"name": "refuses-false-precision", "description": "关键数据缺失时不得给精确目标价。"},
+        {"name": "lists-data-gaps", "description": "必须说明缺失数据和下一步核验动作。"},
+        {"name": "uses-conditional-scenarios", "description": "只能给明确标注假设的条件化区间。"}
+      ]
+    },
+    {
+      "id": "equity-10",
+      "category": "多 Agent 冲突",
+      "prompt": "使用 $securities-analyst 综合 evals/fixtures/conflicting-agent-evidence.json 中三个子 Agent 的证据，形成 TESTCO 的主 Agent 处理结果。",
+      "files": ["evals/fixtures/conflicting-agent-evidence.json"],
+      "expected_output": "主 Agent 必须识别 42% 毛利率含不可持续产品组合、价格降幅大于成本降幅，并判定估值 Agent 的 45% 中性假设缺少支持；不得投票或直接拼接结论；应撤销旧目标价，重建产品结构、价格和成本驱动情景，在重算前降低命题置信度并设置验证指标。",
+      "assertions": [
+        {"name": "reconciles-assumptions", "description": "必须统一毛利率、价格和成本假设。"},
+        {"name": "does-not-vote", "description": "多 Agent 冲突不能用多数投票解决。"},
+        {"name": "propagates-conflict-to-valuation", "description": "冲突必须传导到预测、估值和置信度。"}
+      ]
+    },
+    {
+      "id": "equity-11",
+      "category": "模型路由与降级",
+      "prompt": "使用 $securities-analyst 做深度个股研究，并让主 Agent 给每个子 Agent 指定 OpenAI 模型和推理等级；假设当前运行环境不能确认逐子 Agent 配置是否生效。",
+      "expected_output": "应提出主编排、资料、业务行业、财务预测、估值预期和风险反证的能力档位与推理等级；不能声称未确认的模型配置已经生效；应让角色继承主 Agent 配置并保持独立上下文，完成报告标记实际配置为继承或未知。",
+      "assertions": [
+        {"name": "routes-by-task-complexity", "description": "不同子任务使用与复杂度匹配的能力档位和推理等级。"},
+        {"name": "does-not-fake-model-routing", "description": "运行环境无法确认时不得声称逐 Agent 模型配置已生效。"},
+        {"name": "uses-explicit-fallback", "description": "必须定义继承主模型或单 Agent 分阶段执行的降级方案。"}
+      ]
+    },
+    {
+      "id": "equity-12",
+      "category": "冻结数据数值勾稽",
+      "prompt": "使用 $securities-analyst 和冻结数据 evals/fixtures/cross-listed-scenario.json，计算 TEST-ADR 三情景目标价与概率加权年化总回报。",
+      "files": ["evals/fixtures/cross-listed-scenario.json"],
+      "expected_output": "必须使用 scripts/equity_scenario_model.py 或等价确定性计算，并把完整数值结果保存为 calculation_result JSON；中性情景股权价值为 900、ADR 目标报价为 10.08；逐情景目标汇率为 0.13/0.14/0.15；概率加权期末财富为 10.50、总回报为 31.25%、年化回报约 14.55%；必须展示企业价值到股权价值、普通股到 ADR、人民币到美元的桥接。",
+      "numeric_tolerance": 0.0001,
+      "assertions": [
+        {"name": "reconciles-ev-to-equity", "description": "企业价值扣减净负债和少数股东、加回非经营资产后得到股权价值。"},
+        {"name": "reconciles-cross-listed-security", "description": "必须使用 ADR 换股比例、汇率和报价单位计算目标报价。"},
+        {"name": "calculates-annualized-tsr", "description": "必须包含股息并按明确目标日期计算概率加权年化总回报。"}
+      ]
+    }
+  ]
+}

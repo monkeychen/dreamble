@@ -3,7 +3,7 @@
   "rubric": {
     "total_score": 100,
     "dimensions": [
-      {"name": "分析方式选择", "points": 20, "description": "用户未指定时先让用户选择原始 Prompt 或 securities-analyst，不静默替选或混用。"},
+      {"name": "研究路由", "points": 20, "description": "生产研究只使用 securities-analyst；依赖不可用时停止新研究；原始 Prompt 仅用于不发布的明确对照实验。"},
       {"name": "研究与合规", "points": 25, "description": "使用最新可核验来源，区分事实与推断，投资判断有假设、风险和证伪条件。"},
       {"name": "产物一致性", "points": 20, "description": "以 tmp 中的 article.md 为唯一主稿，封面、插图和两个渠道内容路径一致。"},
       {"name": "发布边界", "points": 25, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
@@ -13,18 +13,21 @@
   "evals": [
     {
       "id": 1,
-      "category": "分析方式选择",
+      "category": "默认研究路由",
       "prompt": "使用 $securities-article-publisher 分析宁德时代并做成公众号文章。",
-      "expected_output": "在开始研究前询问使用 Skill 内置的 stock-analyzer-01 原始 Prompt 还是 securities-analyst Skill，并推荐内置原始 Prompt；不能自行加载两者混合分析。",
-      "assertions": [{"name": "asks-analysis-method", "description": "用户未指定分析方式时必须先询问。"}]
+      "expected_output": "不询问用户选择内部研究引擎，默认加载 securities-analyst 并使用个股深度研究框架；不能静默混用原始 Prompt。",
+      "assertions": [
+        {"name": "uses-default-analyst", "description": "用户未指定分析方式时默认使用 securities-analyst。"},
+        {"name": "does-not-expose-internal-routing", "description": "不要求用户理解或选择内部 Prompt 与 Skill。"}
+      ]
     },
     {
       "id": 2,
-      "category": "明确选择",
+      "category": "历史基准对照",
       "prompt": "使用 $securities-article-publisher，按原始 Prompt 分析人形机器人产业链，只生成文章和封面，不发布。",
-      "expected_output": "直接读取原始 Prompt 并研究，不再询问分析方式；只生成 tmp 主稿和封面，不调用公众号或网站发布。",
+      "expected_output": "说明原始 Prompt 不再是生产研究内核；在不发布的前提下，可以把它作为历史基准运行，同时以 securities-analyst 作为正式研究结果并比较差异；只生成本地产物。",
       "assertions": [
-        {"name": "honors-explicit-method", "description": "采用用户指定的原始 Prompt。"},
+        {"name": "keeps-canonical-research-kernel", "description": "正式研究仍以 securities-analyst 为唯一内核。"},
         {"name": "does-not-publish", "description": "没有外部发布行为。"}
       ]
     },
@@ -69,16 +72,16 @@
     {
       "id": 8,
       "category": "失败隔离",
-      "prompt": "按原始 Prompt 分析半导体设备产业链，公众号和网站都直接处理。假设公众号接口失败但网站可用。",
-      "expected_output": "保留主稿和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
+      "prompt": "使用 securities-analyst 分析半导体设备产业链，公众号和网站都直接处理。假设公众号接口失败但网站可用。",
+      "expected_output": "使用唯一的 securities-analyst 研究内核；保留主稿和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
       "assertions": [{"name": "isolates-channel-failures", "description": "一个渠道失败不被包装成整体成功，也不无故阻塞另一个已授权渠道。"}]
     },
     {
       "id": 9,
-      "category": "独立发布包",
+      "category": "缺少研究依赖",
       "prompt": "当前只安装了 $securities-article-publisher 这个 Skill，没有 dreamble 仓库根目录。按原始 Prompt 分析某只股票。",
-      "expected_output": "从 Skill 自身 references/stock-analyzer-01.md 读取完整分析要求并执行，不访问或要求用户提供仓库根目录 prompts/stock-analyzer-01.md。",
-      "assertions": [{"name": "uses-bundled-analysis-prompt", "description": "独立发布后原始 Prompt 模式仍可用，不依赖 Skill 目录外文件。"}]
+      "expected_output": "说明新证券研究依赖 securities-analyst，当前不能用历史 Prompt 替代生产研究；提示启用该 Skill。若用户提供完整主稿，仍可继续配图和发布准备。",
+      "assertions": [{"name": "requires-canonical-analyst", "description": "缺少 securities-analyst 时不得静默切换到第二套研究内核。"}]
     }
   ]
 }

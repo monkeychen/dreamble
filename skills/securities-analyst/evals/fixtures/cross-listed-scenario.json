@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-08-25",
+  "valuation_date": "2028-08-25",
+  "valuation_currency": "CNY",
+  "spot_price_quote": 8.0,
+  "security": {
+    "ticker": "TEST-ADR",
+    "listing_currency": "USD",
+    "ordinary_shares_per_listed_unit": 8.0,
+    "quote_units_per_listing_currency": 1.0
+  },
+  "scenarios": [
+    {
+      "name": "bear",
+      "probability": 0.25,
+      "enterprise_value": 700.0,
+      "net_debt": 100.0,
+      "minority_interest": 20.0,
+      "non_operating_assets": 20.0,
+      "diluted_ordinary_shares": 100.0,
+      "target_listing_currency_per_valuation_currency": 0.13,
+      "cumulative_dividends_quote": 0.2
+    },
+    {
+      "name": "base",
+      "probability": 0.5,
+      "enterprise_value": 1000.0,
+      "net_debt": 100.0,
+      "minority_interest": 20.0,
+      "non_operating_assets": 20.0,
+      "diluted_ordinary_shares": 100.0,
+      "target_listing_currency_per_valuation_currency": 0.14,
+      "cumulative_dividends_quote": 0.3
+    },
+    {
+      "name": "bull",
+      "probability": 0.25,
+      "enterprise_value": 1300.0,
+      "net_debt": 100.0,
+      "minority_interest": 20.0,
+      "non_operating_assets": 20.0,
+      "diluted_ordinary_shares": 100.0,
+      "target_listing_currency_per_valuation_currency": 0.15,
+      "cumulative_dividends_quote": 0.4
+    }
+  ]
+}

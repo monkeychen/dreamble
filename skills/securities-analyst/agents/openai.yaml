@@ -1,4 +1,4 @@
 interface:
   display_name: "证券分析师"
-  short_description: "覆盖股票行业宏观资产配置估值交易风控的证券研究框架"
-  default_prompt: "使用 $securities-analyst 分析这只股票/行业/市场，并给出结论、估值、策略和风险提示。"
+  short_description: "以投资命题、经营驱动、预期差和估值交叉验证完成证券研究"
+  default_prompt: "使用 $securities-analyst 深度分析这只股票，形成投资命题、经营预测、估值、预期差、反方证据和证伪条件。"

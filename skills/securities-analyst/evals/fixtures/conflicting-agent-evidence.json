@@ -1,0 +1,37 @@
+{
+  "company": "TESTCO",
+  "as_of": "2026-08-25",
+  "initial_thesis": "产品升级将推动下一财年毛利率持续提升",
+  "agent_outputs": [
+    {
+      "role": "financial",
+      "claim": "最新季度毛利率由 38% 升至 42%",
+      "evidence": "高毛利老产品集中确认贡献约 3 个百分点，管理层称该组合不可持续",
+      "source": "fixture:q2-filing",
+      "as_of": "2026-06-30",
+      "evidence_type": "fact",
+      "confidence": "high",
+      "impact": "42% 不能直接作为下一财年稳态毛利率"
+    },
+    {
+      "role": "industry",
+      "claim": "主力产品价格竞争加剧",
+      "evidence": "下一财年合同均价下降约 10%，已确认单位成本下降约 6%",
+      "source": "fixture:signed-contracts-and-cost-data",
+      "as_of": "2026-08-20",
+      "evidence_type": "fact",
+      "confidence": "high",
+      "impact": "若产品结构不变，价格成本差将压低毛利率"
+    },
+    {
+      "role": "valuation",
+      "claim": "中性情景采用 45% 毛利率并给出乐观目标价",
+      "evidence": "沿用市场乐观叙事，没有经营驱动或原始披露支持",
+      "source": "fixture:unsupported-model-assumption",
+      "as_of": "2026-08-25",
+      "evidence_type": "inference",
+      "confidence": "low",
+      "impact": "目标价可能高估"
+    }
+  ]
+}
