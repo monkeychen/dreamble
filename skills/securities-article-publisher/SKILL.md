@@ -11,7 +11,7 @@ description: 将指定股票、行业或产业链的深度研究编排为可发�
 
 1. 明确研究对象、市场或交易所、文章目标读者；同名证券无法消歧时才追问 ticker。
 2. 本次需要新做证券研究时，**分析方式必须由用户选择，不能静默决定，也不能默认混用：**
-   - `原始 Prompt（推荐）`：完整读取仓库根目录 `prompts/stock-analyzer-01.md`，按其要求研究。
+   - `内置原始 Prompt（推荐）`：完整读取 [references/stock-analyzer-01.md](references/stock-analyzer-01.md)，按其要求研究。该文件随 Skill 一起发布，不依赖仓库外路径。
    - `securities-analyst Skill`：加载 `$securities-analyst` 及当前任务对应的 references。
    - 用户已在本次请求明确指定方式时直接采用；未指定时先询问，再开始研究。若用户提供了已完成主稿且只要求配图或发布，跳过此选择。
    - 只有用户明确要求对照实验时才同时运行两种方式。
@@ -52,6 +52,8 @@ coverImage: ./imgs/cover.png
 
 5. 逐项检查标题、关键数字、可比公司、结论与风险是否一致，删除研究过程话术和无法证实的断言。
 6. 只有原稿存在明显层级、列表或中英文间距问题时，才使用 `$baoyu-format-markdown`；它只负责排版，不替代证券研究或事实审校。
+
+维护本仓库时，根目录 `prompts/stock-analyzer-01.md` 是便于单独使用的同步副本。修改任一副本后，必须同步另一份并运行 `scripts/test_packaging.py`；发布包运行时始终以内置 reference 为准。
 
 ## 视觉资产
 

@@ -15,7 +15,7 @@
       "id": 1,
       "category": "分析方式选择",
       "prompt": "使用 $securities-article-publisher 分析宁德时代并做成公众号文章。",
-      "expected_output": "在开始研究前询问使用 stock-analyzer-01 原始 Prompt 还是 securities-analyst Skill，并推荐原始 Prompt；不能自行加载两者混合分析。",
+      "expected_output": "在开始研究前询问使用 Skill 内置的 stock-analyzer-01 原始 Prompt 还是 securities-analyst Skill，并推荐内置原始 Prompt；不能自行加载两者混合分析。",
       "assertions": [{"name": "asks-analysis-method", "description": "用户未指定分析方式时必须先询问。"}]
     },
     {
@@ -72,6 +72,13 @@
       "prompt": "按原始 Prompt 分析半导体设备产业链，公众号和网站都直接处理。假设公众号接口失败但网站可用。",
       "expected_output": "保留主稿和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
       "assertions": [{"name": "isolates-channel-failures", "description": "一个渠道失败不被包装成整体成功，也不无故阻塞另一个已授权渠道。"}]
+    },
+    {
+      "id": 9,
+      "category": "独立发布包",
+      "prompt": "当前只安装了 $securities-article-publisher 这个 Skill，没有 dreamble 仓库根目录。按原始 Prompt 分析某只股票。",
+      "expected_output": "从 Skill 自身 references/stock-analyzer-01.md 读取完整分析要求并执行，不访问或要求用户提供仓库根目录 prompts/stock-analyzer-01.md。",
+      "assertions": [{"name": "uses-bundled-analysis-prompt", "description": "独立发布后原始 Prompt 模式仍可用，不依赖 Skill 目录外文件。"}]
     }
   ]
 }
