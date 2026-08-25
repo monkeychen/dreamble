@@ -367,8 +367,8 @@
     {
       "id": 19,
       "category": "Markdown 研究报告交付",
-      "prompt": "使用 $securities-analyst 深度分析腾讯控股，完成后把研究报告交给 securities-article-publisher 使用。",
-      "expected_output": "必须由 securities-analyst 完成全部联网研究、事实核验、估值、风险和结论自检，并输出带 title、summary frontmatter 的完整 Markdown 研究报告；不得把审校、补充研究或文章重写责任交给 Publisher。",
+      "prompt": "使用 $securities-analyst 深度分析腾讯控股，完成后把研究报告交给通用发布 Skill 使用。",
+      "expected_output": "必须由 securities-analyst 完成全部联网研究、事实核验、估值、风险和结论自检，并输出带 title、summary frontmatter 的完整 Markdown 研究报告；不得把审校、补充研究或文章重写责任交给下游发布 Skill。",
       "files": [],
       "assertions": [
         {

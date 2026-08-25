@@ -17,9 +17,9 @@
 从仓库根目录执行：
 
 ```bash
-python3 skills/securities-article-publisher/scripts/prepare_site_post.py \
-  tmp/securities-article-publisher/YYYY-MM-DD-<slug>/article.md \
-  --output-root tmp/securities-article-publisher/YYYY-MM-DD-<slug>/site-post \
+python3 skills/wechat-site-publisher/scripts/prepare_site_post.py \
+  tmp/wechat-site-publisher/YYYY-MM-DD-<slug>/article.md \
+  --output-root tmp/wechat-site-publisher/YYYY-MM-DD-<slug>/site-post \
   --date YYYY-MM-DD \
   --slug <slug> \
   --title "文章标题" \

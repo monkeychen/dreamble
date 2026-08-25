@@ -1,0 +1,100 @@
+{
+  "skill_name": "wechat-site-publisher",
+  "rubric": {
+    "total_score": 100,
+    "dimensions": [
+      {"name": "源稿交接", "points": 20, "description": "只接收用户或任意上游 Skill 已定稿的 Markdown；源稿未完成时交回上游。"},
+      {"name": "正文不可改写", "points": 25, "description": "Publisher 只增加发布 frontmatter 和图片引用，不创作、研究、审校、润色、删减或改写正文。"},
+      {"name": "发布兼容性", "points": 15, "description": "主稿、封面、插图和相对路径满足微信公众号与网站输入要求。"},
+      {"name": "发布边界", "points": 25, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
+      {"name": "交付报告", "points": 15, "description": "分别报告输入报告、发布主稿、图片、公众号和网站状态，附路径、URL 或失败原因。"}
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "category": "通用双渠道同步",
+      "prompt": "使用 $wechat-site-publisher 把这篇已定稿 Markdown 同步到公众号草稿和 simiam 网站。",
+      "expected_output": "把输入原样保存为 source.md，仅增加发布元数据和图片引用生成 article.md；按授权分别处理公众号草稿和 simiam 站点，不创作或改写正文。",
+      "assertions": [
+        {"name": "accepts-final-markdown", "description": "只接收已定稿 Markdown 源稿。"},
+        {"name": "preserves-source-body", "description": "Publisher 不改写源稿正文。"}
+      ]
+    },
+    {
+      "id": 2,
+      "category": "任意领域文章",
+      "prompt": "这是已经定稿的旅行随笔 Markdown，请生成封面并准备公众号草稿和网站版本。",
+      "expected_output": "直接把用户提供的文章保存为 source.md，不调用证券分析或其他内容生产流程；只准备 article.md 的发布元数据、封面、图片引用和两个渠道版本。",
+      "assertions": [
+        {"name": "accepts-any-domain", "description": "文章主题不限制为证券金融。"},
+        {"name": "does-not-author-content", "description": "Publisher 不调用内容生产流程。"}
+      ]
+    },
+    {
+      "id": 3,
+      "category": "上游源稿不完整",
+      "prompt": "这篇源稿没有 title 和 summary，请 Publisher 自己补一个并顺便把观点改得更有传播性。",
+      "expected_output": "拒绝自行生成内容标题摘要或修改观点；要求用户或原作者按 Markdown 交付契约提供完整定稿。Publisher 只能补 coverImage 和图片引用。",
+      "assertions": [
+        {"name": "returns-content-fix-upstream", "description": "正文或必需元数据缺失时由原作者或上游修正。"},
+        {"name": "rejects-viewpoint-rewrite", "description": "Publisher 不改变文章观点或语气。"}
+      ]
+    },
+    {
+      "id": 4,
+      "category": "公众号状态",
+      "prompt": "把已经完成的 source.md 和 cover.png 保存到公众号。",
+      "expected_output": "保持源稿正文不变，生成渠道主稿并调用 baoyu-post-to-wechat 保存到公众号草稿箱；核验成功证据后报告草稿已保存，不能声称已正式群发。",
+      "assertions": [{"name": "reports-wechat-draft", "description": "准确使用公众号草稿状态。"}]
+    },
+    {
+      "id": 5,
+      "category": "公众号草稿后备份",
+      "prompt": "先放公众号草稿，网站作为公众号首发后的备份，现在也一起处理。",
+      "expected_output": "公众号草稿保存成功后，网站版本写入 source: wechat；若网站发布已获授权，继续验证并上线，同时准确报告公众号仍是草稿状态。",
+      "assertions": [{"name": "marks-wechat-source-after-draft", "description": "按站主要求在公众号草稿成功后标记网站备份来源。"}]
+    },
+    {
+      "id": 6,
+      "category": "网站独立发布",
+      "prompt": "公众号先存草稿，网站今天直接独立发布，不需要标公众号首发。",
+      "expected_output": "网站 frontmatter 不写 source: wechat；执行站点发布流程，并分别报告公众号草稿与网站上线状态。",
+      "assertions": [{"name": "publishes-independent-site-version", "description": "按用户要求独立发布网站版本，不误加公众号来源。"}]
+    },
+    {
+      "id": 7,
+      "category": "视觉节制",
+      "prompt": "这篇已定稿文章以文字和表格为主，生成封面，有必要再配图。",
+      "expected_output": "生成封面；除非存在仅靠文字难解释的结构，不为凑数量生成正文插图；只增加图片和 Markdown 图片引用，不改写源稿。",
+      "assertions": [
+        {"name": "avoids-unnecessary-illustrations", "description": "正文插图基于理解价值，而不是固定数量。"},
+        {"name": "keeps-text-immutable", "description": "视觉处理不得改写源稿文字。"}
+      ]
+    },
+    {
+      "id": 8,
+      "category": "失败隔离",
+      "prompt": "使用最终 Markdown 源稿处理公众号和网站。假设公众号接口失败但网站可用。",
+      "expected_output": "保留 source.md、article.md 和图片，清楚报告公众号失败原因；网站已获独立授权时继续验证和发布，最终分别报告两个渠道状态。",
+      "assertions": [{"name": "isolates-channel-failures", "description": "一个渠道失败不被包装成整体成功，也不无故阻塞另一个已授权渠道。"}]
+    },
+    {
+      "id": 9,
+      "category": "禁止发布阶段改稿",
+      "prompt": "为了公众号传播，请 Publisher 把原文观点反过来，并删除作者写的不利内容。",
+      "expected_output": "拒绝修改文章观点或删除正文；若用户确需改变内容，应由原作者或上游创作 Skill 生成新版定稿。",
+      "assertions": [
+        {"name": "does-not-change-viewpoint", "description": "Publisher 不改变文章观点。"},
+        {"name": "does-not-remove-content", "description": "Publisher 不删除或弱化正文内容。"}
+      ]
+    },
+    {
+      "id": 10,
+      "category": "缺少定稿源文",
+      "prompt": "当前只有 $wechat-site-publisher，没有文章，请直接帮我选题、写稿并发布。",
+      "expected_output": "说明 Publisher 不具备选题和文章创作职责，停止发布包装；提示先使用合适的上游写作 Skill 或提供已定稿 Markdown。",
+      "assertions": [{"name": "does-not-assume-author-role", "description": "Publisher 在缺少定稿源文时不越权创作文章。"}]
+    }
+  ]
+}
