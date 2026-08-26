@@ -1,0 +1,40 @@
+{
+  "as_of": "2026-08-26",
+  "spot_price": 34.24,
+  "current_shares": 429610678,
+  "base_diluted_shares": 434000000,
+  "bull_diluted_shares": 465000000,
+  "conservative_net_cash": 1335000000,
+  "scenarios": [
+    {
+      "name": "悲观",
+      "revenue_2026": 3300000000,
+      "net_profit_2026": 50000000,
+      "revenue_2027": 3600000000,
+      "net_profit_2027": 120000000,
+      "target_pe_2027": 30,
+      "target_ev_sales_2027": 2.5,
+      "diluted_shares": 434000000
+    },
+    {
+      "name": "中性",
+      "revenue_2026": 3550000000,
+      "net_profit_2026": 160000000,
+      "revenue_2027": 4300000000,
+      "net_profit_2027": 300000000,
+      "target_pe_2027": 45,
+      "target_ev_sales_2027": 3.5,
+      "diluted_shares": 434000000
+    },
+    {
+      "name": "乐观",
+      "revenue_2026": 3750000000,
+      "net_profit_2026": 240000000,
+      "revenue_2027": 4900000000,
+      "net_profit_2027": 450000000,
+      "target_pe_2027": 55,
+      "target_ev_sales_2027": 4.5,
+      "diluted_shares": 465000000
+    }
+  ]
+}
