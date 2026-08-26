@@ -3,7 +3,7 @@
 本仓库集中维护「聊哉梦呓」相关产品、个人站、Agent Skills 和提示词资料。
 
 ## 项目专用skills位置
-当前项目根目录下的.workbuddy/skills中包含项目专用各种的Agent Skills。
+当前项目根目录下的.workbuddy/skills与.agents/skills中包含项目专用各种的Agent Skills。（.workbuddy其实是一个别名，指向.agents目录）
 
 ## 规则范围
 
