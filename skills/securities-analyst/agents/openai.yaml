@@ -1,4 +1,4 @@
 interface:
   display_name: "证券分析师"
-  short_description: "完成自检闭环的证券研究并交付完整 Markdown 报告"
-  default_prompt: "使用 $securities-analyst 深度分析这只股票，自检后输出包含来源、估值、风险和证伪条件的完整 Markdown 研究报告。"
+  short_description: "基于产业链、基本面与估值完成公众号级证券深度研究"
+  default_prompt: "使用 $securities-analyst 深度分析这只股票，从公司业务、产业链位置、财务、同行、股价和估值讲清楚，输出普通投资者能直接读懂的完整 Markdown 文章。"

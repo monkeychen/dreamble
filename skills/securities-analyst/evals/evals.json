@@ -31,7 +31,7 @@
       {
         "name": "表达质量",
         "points": 10,
-        "description": "中文结论清楚、专业但不堆术语，深度研究以自检完成的完整 Markdown 报告交付。"
+        "description": "中文结论清楚、专业但不堆术语；个股深度研究写成普通投资者能读懂、可直接发布的完整 Markdown 文章。"
       }
     ],
     "score_bands": [
@@ -58,7 +58,7 @@
       "id": 1,
       "category": "事实核验-美股个股",
       "prompt": "使用 $securities-analyst 分析英伟达 NVDA 现在还能不能买，要求给出最新行情、估值、同业比较、目标价区间、止损位和仓位建议。",
-      "expected_output": "必须联网核验 NVDA 最新股价、市值、最新财报或公告和主要估值口径；形成投资命题卡，把数据中心需求、产品节奏、供给、毛利率和资本开支连接到三情景预测；比较可比公司并反推当前价格隐含的增长；说明数据时间戳、预期差、最强反方证据和证伪条件。",
+      "expected_output": "必须联网核验 NVDA 最新股价、市值、最新财报或公告和主要估值口径；在内部形成可修改的核心判断，把数据中心需求、产品节奏、供给、毛利率和资本开支连接到三情景预测；比较可比公司并反推当前价格隐含的增长；最终用普通读者能懂的文章说明数据时间戳、市场可能看错的地方、最强反面证据和改变判断的条件。",
       "files": [],
       "assertions": [
         {
@@ -368,7 +368,7 @@
       "id": 19,
       "category": "Markdown 研究报告交付",
       "prompt": "使用 $securities-analyst 深度分析腾讯控股，完成后把研究报告交给通用发布 Skill 使用。",
-      "expected_output": "必须由 securities-analyst 完成全部联网研究、事实核验、估值、风险和结论自检，并输出带 title、summary frontmatter 的完整 Markdown 研究报告；不得把审校、补充研究或文章重写责任交给下游发布 Skill。",
+      "expected_output": "必须由 securities-analyst 完成全部联网研究、事实核验、估值、风险和结论自检，并输出带 title、summary frontmatter、普通投资者可直接阅读的完整 Markdown 文章；在本仓库执行时保存到 tmp；不得把审校、补充研究或文章重写责任交给下游发布 Skill。",
       "files": [],
       "assertions": [
         {
@@ -378,6 +378,14 @@
         {
           "name": "keeps-validation-upstream",
           "description": "事实、数据、估值、风险和结论自检必须由 Analyst 完成。"
+        },
+        {
+          "name": "writes-for-general-readers",
+          "description": "最终文章不得直接展示投资命题卡、股票分类卡或证据账本等内部研究结构。"
+        },
+        {
+          "name": "saves-to-runtime-directory",
+          "description": "在本仓库执行时，完整 Markdown 最终稿必须保存到 tmp 并返回路径。"
         }
       ]
     },
@@ -459,6 +467,27 @@
         {
           "name": "does-not-require-unnecessary-browsing",
           "description": "没有最新行情或投资判断需求时，不需要强制联网。"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "category": "个股事件默认完整研究",
+      "prompt": "使用 $securities-analyst 分析某家上市公司：股东提前结束减持，为什么股价反而走弱？我没有要求简答。",
+      "expected_output": "不得只解释减持公告；应完成公司业务与产业链位置、最新行情及相对表现、最近 3-5 年和最新一期财务、至少 3 家可比公司、未来 1-2 年买方情景、主要估值与反向估值、市场与筹码因素，并用普通投资者能懂的公众号文章表达；缺少一致预期不能成为省略预测和估值的理由。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "does-not-downgrade-named-stock",
+          "description": "点名股票且未要求简答时，事件问题默认执行完整个股研究。"
+        },
+        {
+          "name": "covers-company-chain-and-valuation",
+          "description": "必须讲清公司业务、产业链位置、财务和当前估值。"
+        },
+        {
+          "name": "does-not-display-internal-cards",
+          "description": "最终文章不展示投资命题卡、证据账本等内部研究标题。"
         }
       ]
     }

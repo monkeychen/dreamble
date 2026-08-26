@@ -12,9 +12,9 @@
         "description": "关键行情、财报、公告和预测口径可追溯，明确数据截止时间，事实、管理层口径、共识和推断分开。"
       },
       {
-        "name": "投资命题与预期差",
+        "name": "核心判断与市场预期",
         "points": 15,
-        "description": "形成可证伪的投资命题，说明市场共识、当前价格隐含预期、差异化判断和为什么是现在。"
+        "description": "说清当前判断、市场共识、当前价格隐含预期、差异化判断和什么情况下需要改判断；最终文章不展示内部研究卡片。"
       },
       {
         "name": "业务与竞争质量",
@@ -39,7 +39,7 @@
       {
         "name": "表达与一致性",
         "points": 5,
-        "description": "结论明确，预测、估值、催化剂、风险和建议内部一致，不用篇幅和术语掩盖证据缺口。"
+        "description": "结论明确，预测、估值、催化剂、风险和建议内部一致；用普通读者能懂的中文写成可直接发布的文章，不用篇幅和术语掩盖证据缺口。"
       }
     ]
   },
@@ -48,7 +48,7 @@
       "id": "equity-01",
       "category": "质量复利型",
       "prompt": "使用 $securities-analyst 深度分析贵州茅台，回答当前价格是否适合未来三年的长期配置。",
-      "expected_output": "必须形成投资命题卡；核验最新披露和行情；把销量、吨价、产品结构、渠道库存、毛利率、现金流和分红作为驱动；比较历史与同业估值并反推当前价格隐含的增长；给三情景价值区间、最强反方证据和证伪条件。",
+      "expected_output": "必须在内部形成可修改的核心判断，但最终用普通读者能懂的文章表达；核验最新披露和行情；把销量、吨价、产品结构、渠道库存、毛利率、现金流和分红作为驱动；比较历史与同业估值并反推当前价格隐含的增长；给三情景价值区间、最强反面证据和改变判断的条件。",
       "assertions": [
         {"name": "builds-driver-model", "description": "预测必须由量价、产品结构、渠道和利润率驱动，而不是外推历史增速。"},
         {"name": "extracts-market-expectations", "description": "必须说明当前价格隐含的增长和回报要求。"},
@@ -177,6 +177,20 @@
         {"name": "reconciles-ev-to-equity", "description": "企业价值扣减净负债和少数股东、加回非经营资产后得到股权价值。"},
         {"name": "reconciles-cross-listed-security", "description": "必须使用 ADR 换股比例、汇率和报价单位计算目标报价。"},
         {"name": "calculates-annualized-tsr", "description": "必须包含股息并按明确目标日期计算概率加权年化总回报。"}
+      ]
+    },
+    {
+      "id": "equity-13",
+      "category": "默认个股深度与公众号表达",
+      "prompt": "使用 $securities-analyst 分析一家 A 股游戏公司：第一大股东提前终止减持，但股价随后仍然很弱。用户没有要求简答，请解释原因并判断现在是否值得买。",
+      "expected_output": "必须把事件问题视为完整个股研究而不是公告摘要：先用人话介绍公司业务、主要产品、产业链位置和竞争格局；核验最新行情、阶段收益，并与指数、游戏板块和至少 3 家可比公司比较；分析最近 3-5 年及最新一期财务；没有一致预期时自行建立未来 1-2 年买方情景；完成主要估值、独立估值锚和反向估值；区分减持事件、板块、市场风格与筹码因素；最终写成带 frontmatter、普通投资者可直接阅读的公众号文章，不展示投资命题卡等内部研究标题，并保存到 tmp 目录。",
+      "assertions": [
+        {"name": "keeps-full-equity-depth", "description": "点名股票且未要求简答时，事件问题不得降级成公告摘要。"},
+        {"name": "explains-business-and-value-chain", "description": "必须让不了解公司的读者明白公司做什么、在产业链哪里、靠什么赚钱。"},
+        {"name": "uses-relative-market-evidence", "description": "必须用指数、行业和至少 3 家可比公司的相对表现判断弱势来源。"},
+        {"name": "builds-buy-side-scenarios", "description": "缺少一致预期时仍要根据公开证据建立买方情景，不能跳过估值。"},
+        {"name": "writes-publishable-chinese", "description": "最终文章使用普通读者能懂的中文，不展示内部研究卡片和术语标题。"},
+        {"name": "delivers-local-markdown", "description": "在本仓库执行时将完整 Markdown 最终稿保存到 tmp 并返回文件路径。"}
       ]
     }
   ]
