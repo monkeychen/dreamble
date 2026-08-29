@@ -113,7 +113,8 @@ coverImage: ./imgs/cover.png
 4. 在发布授权展示与完成报告中，明确写出实际使用的公众号账号名（显示名）。
 
 ### 调用与发布方法
-1. **执行方式**：用「环境检查」探到的 `{skillDir}`，读其 `SKILL.md` 并按指令执行。发布动作最终落到 `bun` 脚本，先确认 `bun` 可用（不可用则 `npx -y bun`）。它不在本会话可用 skill 列表时，不要用 Skill 工具反复重试，直接按脚本路径执行：
+1. 调用 `$baoyu-post-to-wechat`进行发布，如果提示找不到`baoyu-post-to-wechat`这个skill，按下方步骤2的规则处理。
+2. **执行方式**：用「环境检查」探到的 `{skillDir}`，读其 `SKILL.md` 并按指令执行。发布动作最终落到 `bun` 脚本，先确认 `bun` 可用（不可用则 `npx -y bun`）。它不在本会话可用 skill 列表时，不要用 Skill 工具反复重试，直接按脚本路径执行：
 
    ```bash
    cd <工作目录> && bun {skillDir}/scripts/wechat-api.ts article.md --theme <theme> [--remote]
@@ -121,9 +122,9 @@ coverImage: ./imgs/cover.png
 
    - `--theme` 必须显式传（取 EXTEND.md 的 `default_theme`）。
    - 需要远程中转时追加 `--remote`；`remote_publish_*` 已在 EXTEND.md 配置好，无需额外 CLI 参数。
-2. 直接传入 `article.md`，不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
-3. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
-4. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
+3. 直接传入 `article.md`，不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
+4. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
+5. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
 
 ### IP 白名单失败 → 远程中转（`--remote`）
 微信「公众号设置 → IP 白名单」常常只放行固定 IP。当走 API/remote-api 方法发布失败，且错误信息表明**本地 IP 不在公众号后台白名单**（典型信号：`errcode 40164`、`invalid IP`、提示“IP 地址不在白名单中”），按以下顺序处理：
