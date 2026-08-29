@@ -4,19 +4,15 @@
 
 ## 项目专用skills位置
 
-**物理存放**：`skills/`（本站原创技能）与 `.workbuddy/skills/`（外部技能软链，已 gitignore）。
+内核只扫描两处：`{workspace}/.codebuddy/skills/`（项目级）与 `~/.workbuddy/skills/`（用户级）。
+`.codebuddy` 是项目根指向 `.workbuddy` 的别名软链，使项目级目录能被内核读到；
+两者均已 gitignore，不进版本库。
 
-**加载入口**：内核只扫描 `{workspace}/.codebuddy/skills/` 与 `~/.workbuddy/skills/`（用户级）。
-`skills/` 和 `.workbuddy/skills/` 本身**不会被扫描**。
+**`skills/` 是开发源码目录，不挂载、不参与 AI 工具加载。**
+AI 工具（WorkBuddy / Codex 等）不得自行把 `skills/` 下的内容链入任何加载目录。
+需要某个技能可用时，由站主自己复制到用户级或项目级 skills 目录，这是唯一的安装路径。
 
-约定：
-- **物理唯一存放** `.workbuddy/skills/`（软链集合，已被 gitignore）。
-- 项目根 `.codebuddy -> .workbuddy`（与平台自建的 `.claude -> .workbuddy` 同一套别名机制），
-  使 `.codebuddy/skills` 解析到 `.workbuddy/skills`，从而被内核加载。
-- 本站原创技能源码放 `skills/`（进版本库），另在 `.workbuddy/skills/` 建相对软链 `../../skills/<name>` 挂载。
-
-新增或接入任何技能，除放进物理目录外，必须确认 `.workbuddy/skills/<name>/SKILL.md` 可解析，否则不生效。
-`.codebuddy`、`.workbuddy` 均已加入 .gitignore，不进版本库。
+`.workbuddy/skills/` 为项目级技能目录，现为指向外部技能仓库的软链集合，由站主自行维护增删。
 
 ## 规则范围
 
