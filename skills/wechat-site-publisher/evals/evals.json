@@ -4,7 +4,7 @@
     "total_score": 100,
     "dimensions": [
       {"name": "源稿交接", "points": 20, "description": "只接收用户或任意上游 Skill 已定稿的 Markdown；源稿未完成时交回上游。"},
-      {"name": "正文不可改写", "points": 25, "description": "Publisher 只增加发布 frontmatter 和图片引用，不创作、研究、审校、润色、删减或改写正文。"},
+      {"name": "正文不可改写", "points": 25, "description": "Publisher 只增加发布 frontmatter 和图片引用，不创作、调研、审校、润色、删减或改写正文。"},
       {"name": "发布兼容性", "points": 15, "description": "主稿、封面、插图和相对路径满足微信公众号与网站输入要求。"},
       {"name": "发布边界", "points": 25, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
       {"name": "交付报告", "points": 15, "description": "分别报告输入报告、发布主稿、图片、公众号和网站状态，附路径、URL 或失败原因。"}
@@ -25,9 +25,9 @@
       "id": 2,
       "category": "任意领域文章",
       "prompt": "这是已经定稿的旅行随笔 Markdown，请生成封面并准备公众号草稿和网站版本。",
-      "expected_output": "直接把用户提供的文章保存为 source.md，不调用证券分析或其他内容生产流程；只准备 article.md 的发布元数据、封面、图片引用和两个渠道版本。",
+      "expected_output": "直接把用户提供的文章保存为 source.md，不调用任何内容生产流程；只准备 article.md 的发布元数据、封面、图片引用和两个渠道版本。",
       "assertions": [
-        {"name": "accepts-any-domain", "description": "文章主题不限制为证券金融。"},
+        {"name": "accepts-any-domain", "description": "文章主题不限制在任何单一领域。"},
         {"name": "does-not-author-content", "description": "Publisher 不调用内容生产流程。"}
       ]
     },
@@ -35,9 +35,9 @@
       "id": 3,
       "category": "上游源稿不完整",
       "prompt": "这篇源稿没有 title 和 summary，请 Publisher 自己补一个并顺便把观点改得更有传播性。",
-      "expected_output": "拒绝自行生成内容标题摘要或修改观点；要求用户或原作者按 Markdown 交付契约提供完整定稿。Publisher 只能补 coverImage 和图片引用。",
+      "expected_output": "在 source.md 文件头补写 title（取源稿首个 H1）和 summary（基于通读自撰）——这属于发布包装；同时坚决拒绝修改观点。正文一字不改。",
       "assertions": [
-        {"name": "returns-content-fix-upstream", "description": "正文或必需元数据缺失时由原作者或上游修正。"},
+        {"name": "fills-missing-frontmatter", "description": "title 或 summary 缺失时在文件头补写，不退回用户补写。"},
         {"name": "rejects-viewpoint-rewrite", "description": "Publisher 不改变文章观点或语气。"}
       ]
     },
