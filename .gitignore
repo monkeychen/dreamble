@@ -12,10 +12,24 @@ Icon\r
 # ==========================================
 # AI Agents & CLI Tools (Local State/Logs)
 # ==========================================
-.antigravitycli/
+# 这些条目在旧版本里曾以 symlink 形式被跟踪，现统一忽略。
+# 一律写「不带斜杠」的形式：带斜杠的写法只匹配目录，匹配不到 symlink。
+.agents
+.agents/
+**/.agents/
+.workbuddy
+.workbuddy/
+**/.workbuddy/
+.claude
 .claude/
 **/.claude/
+.codebuddy
+.codebuddy/
+**/.codebuddy/
+.antigravitycli/
 **/.antigravitycli/
+.codegraph
+.omo/
 
 # ==========================================
 # Editors & IDEs
@@ -83,10 +97,3 @@ dist/
 
 # astro
 .astro/
-
-.omo/
-.agents/
-.agents
-.workbuddy/
-.codebuddy
-.codegraph
