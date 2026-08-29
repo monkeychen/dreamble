@@ -3,7 +3,20 @@
 本仓库集中维护「聊哉梦呓」相关产品、个人站、Agent Skills 和提示词资料。
 
 ## 项目专用skills位置
-当前项目根目录下的.workbuddy/skills与.agents/skills中包含项目专用各种的Agent Skills。（.workbuddy其实是一个别名，指向.agents目录）
+
+**物理存放**：`skills/`（本站原创技能）与 `.workbuddy/skills/`（外部技能软链，已 gitignore）。
+
+**加载入口**：内核只扫描 `{workspace}/.codebuddy/skills/` 与 `~/.workbuddy/skills/`（用户级）。
+`skills/` 和 `.workbuddy/skills/` 本身**不会被扫描**。
+
+约定：
+- **物理唯一存放** `.workbuddy/skills/`（软链集合，已被 gitignore）。
+- 项目根 `.codebuddy -> .workbuddy`（与平台自建的 `.claude -> .workbuddy` 同一套别名机制），
+  使 `.codebuddy/skills` 解析到 `.workbuddy/skills`，从而被内核加载。
+- 本站原创技能源码放 `skills/`（进版本库），另在 `.workbuddy/skills/` 建相对软链 `../../skills/<name>` 挂载。
+
+新增或接入任何技能，除放进物理目录外，必须确认 `.workbuddy/skills/<name>/SKILL.md` 可解析，否则不生效。
+`.codebuddy`、`.workbuddy` 均已加入 .gitignore，不进版本库。
 
 ## 规则范围
 

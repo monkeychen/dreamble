@@ -86,4 +86,7 @@ dist/
 
 .omo/
 .agents/
+.agents
+.workbuddy/
+.codebuddy
 .codegraph
