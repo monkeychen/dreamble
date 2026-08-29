@@ -10,10 +10,14 @@ import { POSTS_ROOT, PROJECTS_ROOT } from './lib/project-paths.mjs';
 
 const errors = [];
 
+// macOS 自动生成的杂项文件，不是作者放错的内容，不参与目录约束校验
+const IGNORED_FILES = new Set(['.DS_Store']);
+
 async function contentDirectories(directory, label) {
   const entries = await readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
-    if (!entry.isDirectory()) errors.push(`${label}目录中不应直接放文件：${entry.name}`);
+    if (entry.isDirectory() || IGNORED_FILES.has(entry.name)) continue;
+    errors.push(`${label}目录中不应直接放文件：${entry.name}`);
   }
   return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
 }
