@@ -7,6 +7,43 @@ description: 接收任意已定稿 Markdown 文章，在不改写正文的前提
 
 把任意已定稿 Markdown 文章转换为渠道可用主稿，并完成视觉资产、微信公众号草稿和 simiam 站点版本。默认中文。源稿、发布主稿、公众号草稿和网站上线是四种不同状态，必须分别报告；本 Skill 不负责文章创作、研究、审校或改写正文。
 
+## 环境检查（最先执行）
+
+本 Skill 依赖第三方开源项目 [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills) 的技能。**本项目不提供、不代装**，需使用者自行安装到用户级或项目级 skills 目录。动手前先探测，不要等跑到一半才失败。
+
+### 1. 探测依赖
+
+```bash
+for s in baoyu-post-to-wechat baoyu-cover-image baoyu-article-illustrator; do
+  found=""
+  for d in "$HOME/.workbuddy/skills" "$HOME/.claude/skills" \
+           ".codebuddy/skills" ".workbuddy/skills" ".claude/skills" ".agents/skills"; do
+    [ -d "$d/$s" ] && found="$d/$s" && break
+  done
+  echo "$s: ${found:-缺失}"
+done
+```
+
+各工具的技能目录名不同（`.codebuddy` / `.claude` / `.agents` 常互为别名），需逐个探测。下文用到的 `{skillDir}` 就是这里探到的路径（符号链接需先解析到真实路径）。
+
+### 2. 缺失时按强度处理
+
+| 依赖 Skill | 强度 | 缺失时的行为 |
+|---|---|---|
+| `baoyu-post-to-wechat` | **必需** | 停止公众号分支并告知安装方式。用户只要发网站时，网站流程照常继续 |
+| `baoyu-cover-image` | 条件必需 | 仅用户未提供封面时才需要；缺失则请用户提供封面，不得声称已生成 |
+| `baoyu-article-illustrator` | 可选 | 跳过正文插图，不阻断发布 |
+
+报告缺失时给出安装命令：
+
+```bash
+npx skills add jimliu/baoyu-skills
+```
+
+### 3. 账号表定位
+
+公众号账号表在 `baoyu-post-to-wechat` 安装目录下的 `EXTEND.md`。**位置随安装方式变化，不要写死路径**（本机常见为 `~/.baoyu-skills/baoyu-post-to-wechat/EXTEND.md`）。找不到时不传 `--account`，由其默认流程处理；**任何情况下都不自行编造账号名**。
+
 ## 开始前
 
 1. 明确输入源稿路径。输入必须是用户或上游创作、研究、编辑 Skill 已经定稿的 Markdown 文件。
@@ -48,7 +85,7 @@ coverImage: ./imgs/cover.png
 ---
 ```
 
-5. 除 frontmatter 和图片引用外，Publisher 不得重排段落、润色语言、删减内容、改写标题摘要或修正文中内容。用户要求修改正文时，交回原作者或对应上游 Skill 产出新版定稿。
+6. 除 frontmatter 和图片引用外，Publisher 不得重排段落、润色语言、删减内容、改写标题摘要或修正文中内容。用户要求修改正文时，交回原作者或对应上游 Skill 产出新版定稿。
 
 ## 视觉资产
 
@@ -70,26 +107,23 @@ coverImage: ./imgs/cover.png
 ### 账号解析（多账号）
 `baoyu-post-to-wechat` 支持多账号（见其 `EXTEND.md` 的 `accounts:` 块）。本 Skill 按以下规则解析，不要自行创造账号名：
 
-1. **读取账号表**：发布前读取 `~/.baoyu-skills/baoyu-post-to-wechat/EXTEND.md`，解析 `accounts:` 块的 `name` / `alias` / `default` 字段，得到「账号显示名 → 别名」映射与默认账号。
+1. **读取账号表**：发布前按「环境检查」定位 `baoyu-post-to-wechat` 的 `EXTEND.md`，解析 `accounts:` 块的 `name` / `alias` / `default` 字段，得到「账号显示名 → 别名」映射与默认账号。
 2. **用户显式指定账号**：当用户点名某账号（如“发到白话AI大模型”）时，在调用 `baoyu-post-to-wechat` 时传入 `--account <alias>`，其中 `<alias>` 是对应该账号的 `alias`（不是显示名）。用户给的是显示名时先查表映射。
 3. **未指定账号（默认）**：用户未点名账号时，**静默使用 EXTEND.md 中 `default: true` 的默认账号，不向用户追问账号选择**，也不传入 `--account`——交由 `baoyu-post-to-wechat` 按默认账号处理。
 4. 在发布授权展示与完成报告中，明确写出实际使用的公众号账号名（显示名）。
 
 ### 调用与发布方法
-1. **定位 skill**：`$baoyu-post-to-wechat` 优先在项目根目录下的 `.workbuddy/skills` 中查找，未找到则查 `.agents/skills`，仍未找到则报错停止。
-2. **⚠️ 不能用 Skill 工具调用**：`baoyu-post-to-wechat` 是**项目级** skill（在 dreamble 中是符号链接，指向 `/Users/chenzhian/workspace/ai/baoyu-skills/skills/baoyu-post-to-wechat`），**不会出现在运行时可用的 skill 列表里**。用 `Skill` 工具调用会报 `Can not find skill`，不要在这条路上反复重试、也不要去 marketplace 找同名 skill（marketplace 里的 `wechat-publisher` 是另一个不兼容的 skill，且下载会 404）。正确做法是**直接读该目录下的 `SKILL.md`**，按其指令用 `bun` 执行脚本：
+1. **执行方式**：用「环境检查」探到的 `{skillDir}`，读其 `SKILL.md` 并按指令执行。发布动作最终落到 `bun` 脚本，先确认 `bun` 可用（不可用则 `npx -y bun`）。它不在本会话可用 skill 列表时，不要用 Skill 工具反复重试，直接按脚本路径执行：
 
    ```bash
-   # {skillDir} = 找到的 baoyu-post-to-wechat 目录（需解析符号链接到真实路径）
-   # 先确认 bun 可用（不可用则用 npx -y bun，或 brew install oven-sh/bun/bun）
    cd <工作目录> && bun {skillDir}/scripts/wechat-api.ts article.md --theme <theme> [--remote]
    ```
 
    - `--theme` 必须显式传（取 EXTEND.md 的 `default_theme`）。
    - 需要远程中转时追加 `--remote`；`remote_publish_*` 已在 EXTEND.md 配置好，无需额外 CLI 参数。
-3. 直接传入 `article.md`，不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
-4. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
-5. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
+2. 直接传入 `article.md`，不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
+3. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
+4. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
 
 ### IP 白名单失败 → 远程中转（`--remote`）
 微信「公众号设置 → IP 白名单」常常只放行固定 IP。当走 API/remote-api 方法发布失败，且错误信息表明**本地 IP 不在公众号后台白名单**（典型信号：`errcode 40164`、`invalid IP`、提示“IP 地址不在白名单中”），按以下顺序处理：
@@ -100,8 +134,8 @@ coverImage: ./imgs/cover.png
 4. 远程中转仍失败（如远程出口 IP 也不在白名单、仍报 `40164`）时，停止并报告，交人工在公众号后台调整白名单。
 
 ### 草稿状态语义
-4. 在本工作流中，用户所说的“发表到公众号”默认指**保存到公众号草稿箱**；只有用户明确要求正式群发时，才把它理解为群发。
-5. 只有看到草稿成功证据时才报告“公众号草稿已保存”。草稿保存成功后，网站备份即可标记 `source: wechat`；这不改变公众号侧仍处于草稿状态的事实。
+1. 在本工作流中，用户所说的“发表到公众号”默认指**保存到公众号草稿箱**；只有用户明确要求正式群发时，才把它理解为群发。
+2. 只有看到草稿成功证据时才报告“公众号草稿已保存”。草稿保存成功后，网站备份即可标记 `source: wechat`；这不改变公众号侧仍处于草稿状态的事实。
 
 ## 个人站
 
