@@ -34,10 +34,11 @@ site-post/              # 严格按 site schema 生成的待发布版本
 
 ## 接收报告与准备主稿
 
-1. 将已定稿 Markdown 原样保存为 `source.md`，作为本次发布的内容真源。
+1. 将已定稿 Markdown 原样保存为 `source.md`，作为本次发布的内容真源。**源稿正文一字不改**地落盘。
 2. 只检查发布兼容性：文件可读、frontmatter 中存在 `title` 和 `summary`、Markdown 图片路径可解析。不得检查或修改事实、数字、观点、结论、风险和措辞。
-3. 使用 `scripts/prepare_article.py` 生成 `article.md`。脚本只增加规范的 `coverImage` 和正文封面引用，不改写原正文。
-4. 发布主稿 frontmatter：
+3. **源稿没有 YAML frontmatter 时（很常见，例如知识库里的纯 Markdown 笔记）**：`prepare_article.py` 会以 `Source Markdown must start with YAML frontmatter` 或 `requires non-empty title` 失败。此时不要退回给用户要求补写，而是在写 `source.md` 时**自行补一段最小 frontmatter**——只填 `title`（取源稿首个 H1）和 `summary`（按下方规范自撰，不照抄正文首段），正文部分仍逐字保留源稿内容。这属于发布包装，不是改写正文。
+4. 使用 `scripts/prepare_article.py` 生成 `article.md`。脚本只增加规范的 `coverImage` 和正文封面引用，不改写原正文。
+5. 发布主稿 frontmatter：
 
 ```yaml
 ---
@@ -75,9 +76,20 @@ coverImage: ./imgs/cover.png
 4. 在发布授权展示与完成报告中，明确写出实际使用的公众号账号名（显示名）。
 
 ### 调用与发布方法
-1. 调用 `$baoyu-post-to-wechat`，直接传入 `article.md`；不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
-2. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
-3. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
+1. **定位 skill**：`$baoyu-post-to-wechat` 优先在项目根目录下的 `.workbuddy/skills` 中查找，未找到则查 `.agents/skills`，仍未找到则报错停止。
+2. **⚠️ 不能用 Skill 工具调用**：`baoyu-post-to-wechat` 是**项目级** skill（在 dreamble 中是符号链接，指向 `/Users/chenzhian/workspace/ai/baoyu-skills/skills/baoyu-post-to-wechat`），**不会出现在运行时可用的 skill 列表里**。用 `Skill` 工具调用会报 `Can not find skill`，不要在这条路上反复重试、也不要去 marketplace 找同名 skill（marketplace 里的 `wechat-publisher` 是另一个不兼容的 skill，且下载会 404）。正确做法是**直接读该目录下的 `SKILL.md`**，按其指令用 `bun` 执行脚本：
+
+   ```bash
+   # {skillDir} = 找到的 baoyu-post-to-wechat 目录（需解析符号链接到真实路径）
+   # 先确认 bun 可用（不可用则用 npx -y bun，或 brew install oven-sh/bun/bun）
+   cd <工作目录> && bun {skillDir}/scripts/wechat-api.ts article.md --theme <theme> [--remote]
+   ```
+
+   - `--theme` 必须显式传（取 EXTEND.md 的 `default_theme`）。
+   - 需要远程中转时追加 `--remote`；`remote_publish_*` 已在 EXTEND.md 配置好，无需额外 CLI 参数。
+3. 直接传入 `article.md`，不要预先转成 HTML。主题、主题色由该 Skill 的参数或 EXTEND.md 决定；未配置时按其首次设置流程处理。
+4. 发布方法（API / browser / remote-api）由目标账号的 `default_publish_method` 决定；本 Skill 不强行覆盖方法，只在 API 路径失败时按下方规则触发远程中转。
+5. 封面使用 `imgs/cover.png`。先验证标题、摘要、正文图片和链接，再写入草稿箱。
 
 ### IP 白名单失败 → 远程中转（`--remote`）
 微信「公众号设置 → IP 白名单」常常只放行固定 IP。当走 API/remote-api 方法发布失败，且错误信息表明**本地 IP 不在公众号后台白名单**（典型信号：`errcode 40164`、`invalid IP`、提示“IP 地址不在白名单中”），按以下顺序处理：
