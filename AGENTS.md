@@ -5,14 +5,23 @@
 ## 项目专用skills位置
 
 内核只扫描两处：`{workspace}/.codebuddy/skills/`（项目级）与 `~/.workbuddy/skills/`（用户级）。
-`.codebuddy` 是项目根指向 `.workbuddy` 的别名软链，使项目级目录能被内核读到；
-两者均已 gitignore，不进版本库。
+`.codebuddy` 是项目根指向 `.workbuddy` 的别名软链，使项目级目录能被内核读到。
 
 **`skills/` 是开发源码目录，不挂载、不参与 AI 工具加载。**
 AI 工具（WorkBuddy / Codex 等）不得自行把 `skills/` 下的内容链入任何加载目录。
 需要某个技能可用时，由站主自己复制到用户级或项目级 skills 目录，这是唯一的安装路径。
 
 `.workbuddy/skills/` 为项目级技能目录，现为指向外部技能仓库的软链集合，由站主自行维护增删。
+
+## 版本库范围
+
+以下均为**本地专属目录，不得进版本库**（`.gitignore` 已忽略，且已从索引移除历史跟踪）：
+
+`.workbuddy/`、`.claude/`、`.codebuddy/`、`.agents/`、`.omo/`、`.codegraph`
+
+历史版本里 `.workbuddy` 和 `.claude` 曾以 symlink 被跟踪（内容都指向 `.agents`），
+会导致 clone 后出现悬空链接，已在 bec26ab 移除。`.gitignore` 中这些条目一律写**不带斜杠**的形式，
+因为带斜杠的写法只匹配目录，匹配不到 symlink。
 
 ## 规则范围
 
