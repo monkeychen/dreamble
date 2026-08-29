@@ -72,10 +72,11 @@ site-post/              # 严格按 site schema 生成的待发布版本
 ## 接收报告与准备主稿
 
 1. 将已定稿 Markdown 原样保存为 `source.md`，作为本次发布的内容真源。**源稿正文一字不改**地落盘。
-2. 只检查发布兼容性：文件可读、frontmatter 中存在 `title` 和 `summary`、Markdown 图片路径可解析。不得检查或修改事实、数字、观点、结论、风险和措辞。
-3. **源稿没有 YAML frontmatter 时（很常见，例如知识库里的纯 Markdown 笔记）**：`prepare_article.py` 会以 `Source Markdown must start with YAML frontmatter` 或 `requires non-empty title` 失败。此时不要退回给用户要求补写，而是在写 `source.md` 时**自行补一段最小 frontmatter**——只填 `title`（取源稿首个 H1）和 `summary`（按下方规范自撰，不照抄正文首段），正文部分仍逐字保留源稿内容。这属于发布包装，不是改写正文。
-4. 使用 `scripts/prepare_article.py` 生成 `article.md`。脚本只增加规范的 `coverImage` 和正文封面引用，不改写原正文。
-5. 发布主稿 frontmatter：
+2. **通读源稿**。这是后续发布包装动作的前提；通读只用于理解，不改任何文字，产出两样东西：缺失 `title` / `summary` 时的补写依据（见第 4 条），以及正文插图需求判断（见「视觉资产」第 2 条）。
+3. 只检查发布兼容性：文件可读、frontmatter 中存在 `title` 和 `summary`、Markdown 图片路径可解析。不得检查或修改事实、数字、观点、结论、风险和措辞。
+4. **源稿缺 frontmatter，或 frontmatter 中 `title` / `summary` 为空时**（很常见，例如知识库里的纯 Markdown 笔记）：`prepare_article.py` 会以 `Source Markdown must start with YAML frontmatter` 或 `requires non-empty title` 失败。此时不要退回给用户要求补写，而是在写 `source.md` 时**在文件头补一段最小 frontmatter**——只填 `title`（取源稿首个 H1）和 `summary`（按第 2 条通读的理解自撰，不照抄正文首段），正文部分仍逐字保留源稿内容。这是第 1 条「一字不改」的唯一例外，改的只有文件头，属于发布包装，不是改写正文。
+5. 使用 `scripts/prepare_article.py` 生成 `article.md`。脚本只增加规范的 `coverImage` 和正文封面引用，不改写原正文。
+6. 发布主稿 frontmatter：
 
 ```yaml
 ---
@@ -85,14 +86,20 @@ coverImage: ./imgs/cover.png
 ---
 ```
 
-6. 除 frontmatter 和图片引用外，Publisher 不得重排段落、润色语言、删减内容、改写标题摘要或修正文中内容。用户要求修改正文时，交回原作者或对应上游 Skill 产出新版定稿。
+7. 除 frontmatter 和图片引用外，Publisher 不得重排段落、润色语言、删减内容、改写标题摘要或修正文中内容。用户要求修改正文时，交回原作者或对应上游 Skill 产出新版定稿。
 
 ## 视觉资产
 
 1. 封面资产是必需项。用户未提供可用封面时，调用 `$baoyu-cover-image`，以 `source.md` 为输入，默认建议微信公众号宽封面 `2.35:1`，最终图片放到 `imgs/cover.png`。遵守该 Skill 的偏好读取、确认和提示词留档规则。
-2. 正文插图不是默认凑数量。只有产业链结构、跨公司比较、周期演变或关键机制仅靠文字不易理解时，才调用 `$baoyu-article-illustrator`；它只增加图片和图片引用，不改写研究文字。
-3. 插图应帮助理解，不把推测画成事实。精确数值优先保留源稿 Markdown 表格；AI 图片中的文字或数字不可靠时，改用少字或无字视觉。
-4. 检查图片文件存在、Markdown 相对路径正确、封面可读且与标题一致，再进入发布阶段。
+2. 正文插图不是默认凑数量，张数按以下顺序决定：
+
+   - **用户显式指定张数** → 按用户说的来；超过 3 张时先确认一次。
+   - **用户未指定** → 基于「接收报告与准备主稿」第 2 条通读的理解自行判断，**默认 0 张**；只有某处内容仅靠文字不易理解时才增加，**最多 3 张**。
+
+   判断依据是那段内容本身的表达难度（结构关系、对比差异、演变过程、运作机制等），**与文章题材无关**——研报、随笔、教程一视同仁。动手生成前先说清每张图画什么、插在哪一节之后，用户有异议时按用户意见调整。
+3. 调用 `$baoyu-article-illustrator` 时，它只增加图片和图片引用，不改写正文任何文字。
+4. 插图应帮助理解，不把推测画成事实。精确数值优先保留源稿 Markdown 表格；AI 图片中的文字或数字不可靠时，改用少字或无字视觉。
+5. 检查图片文件存在、Markdown 相对路径正确、封面可读且与标题一致，再进入发布阶段。
 
 ## 发布授权
 
