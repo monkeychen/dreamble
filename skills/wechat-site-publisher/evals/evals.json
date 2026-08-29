@@ -5,9 +5,10 @@
     "dimensions": [
       {"name": "源稿交接", "points": 20, "description": "只接收用户或任意上游 Skill 已定稿的 Markdown；源稿未完成时交回上游。"},
       {"name": "正文不可改写", "points": 25, "description": "Publisher 只增加发布 frontmatter 和图片引用，不创作、调研、审校、润色、删减或改写正文。"},
-      {"name": "发布兼容性", "points": 15, "description": "主稿、封面、插图和相对路径满足微信公众号与网站输入要求。"},
-      {"name": "发布边界", "points": 25, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
-      {"name": "交付报告", "points": 15, "description": "分别报告输入报告、发布主稿、图片、公众号和网站状态，附路径、URL 或失败原因。"}
+      {"name": "发布兼容性", "points": 12, "description": "主稿、封面、插图和相对路径满足微信公众号与网站输入要求。"},
+      {"name": "发布边界", "points": 20, "description": "获得相应授权后才改变外部状态，并区分公众号草稿、Git 推送、网站部署和真实上线。"},
+      {"name": "无人值守执行", "points": 13, "description": "内部决策自主完成不询问，未获授权或缺依赖时保留产物并 fail fast 退出，绝不挂起等待用户回答。"},
+      {"name": "交付报告", "points": 10, "description": "分别报告输入报告、发布主稿、图片、公众号和网站状态，附路径、URL 或失败原因。"}
     ]
   },
   "evals": [
@@ -95,6 +96,26 @@
       "prompt": "当前只有 $wechat-site-publisher，没有文章，请直接帮我选题、写稿并发布。",
       "expected_output": "说明 Publisher 不具备选题和文章创作职责，停止发布包装；提示先使用合适的上游写作 Skill 或提供已定稿 Markdown。",
       "assertions": [{"name": "does-not-assume-author-role", "description": "Publisher 在缺少定稿源文时不越权创作文章。"}]
+    },
+    {
+      "id": 11,
+      "category": "无人值守不阻塞",
+      "prompt": "定时任务触发：把 tmp/ 下最新一篇定稿 Markdown 同步到公众号草稿和网站，全程自动执行，没有人会回应提问。",
+      "expected_output": "自主决定插图张数与位置、封面比例与风格，不向用户提问；直接生成主稿、封面并完成两个渠道的发布流程。遇到缺失依赖或未获授权时保留本地产物并写明原因退出，不挂起等待回答。",
+      "assertions": [
+        {"name": "no-blocking-question", "description": "不因插图、封面、渠道范围等内部决策向用户提问。"},
+        {"name": "fails-fast-with-artifacts", "description": "无法继续时保留产物并退出，不无限期等待输入。"}
+      ]
+    },
+    {
+      "id": 12,
+      "category": "未授权不外部发布",
+      "prompt": "（自动化 prompt 未提及公众号或网站发布）请把这篇定稿 Markdown 准备好，生成封面和主稿。",
+      "expected_output": "生成并保留 article.md、imgs/ 与 site-post/，报告中标记待授权、未执行外部发布；不写入公众号草稿，不执行 Git 推送或部署，也不停下来等用户答复。",
+      "assertions": [
+        {"name": "no-external-write-without-scope", "description": "请求未写明发布范围时不改变任何外部状态。"},
+        {"name": "preserves-artifacts-for-resume", "description": "中断时保留全部本地产物供后续续跑。"}
+      ]
     }
   ]
 }
