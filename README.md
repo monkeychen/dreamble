@@ -62,6 +62,26 @@ npm run dev
 
 产品目标是让用户从微信等应用的“用其他应用打开”入口直接阅读本地文档，并在应用沙盒中保留离线副本。技术方案与目录约束见 [`apps/x-reader/GEMINI.md`](apps/x-reader/GEMINI.md)。
 
+## 外部依赖：Skills
+
+`skills/` 存放本站开发的 Agent Skills 源码，是**开发目录**，不会自动被 AI 工具加载；要用哪个技能，需自行复制到你的用户级或项目级 skills 目录。
+
+其中 `skills/wechat-site-publisher` 运行时依赖第三方开源项目 [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills) 的技能：
+
+| 依赖技能 | 用途 | 强度 |
+|---|---|---|
+| `baoyu-post-to-wechat` | 写入微信公众号草稿 | 必需 |
+| `baoyu-cover-image` | 生成封面图（用户未提供封面时） | 条件必需 |
+| `baoyu-article-illustrator` | 生成正文插图 | 可选 |
+
+**这些依赖本项目不提供，需自行安装**，放到能被你的 AI 工具扫描到的位置即可（用户级如 `~/.workbuddy/skills/`，项目级如 `.codebuddy/skills/`）：
+
+```bash
+npx skills add jimliu/baoyu-skills
+```
+
+依赖强度分级与缺失时的降级行为，以 [`skills/wechat-site-publisher/SKILL.md`](skills/wechat-site-publisher/SKILL.md) 的「环境检查」章节为准。
+
 ## 项目结构
 
 ```text
