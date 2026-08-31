@@ -96,14 +96,46 @@ description: 为明确任务选择合适的大模型、推理强度与调用配�
 
 | 路径 | 能选什么 | 能控什么 | 代价 |
 |---|---|---|---|
-| `.codebuddy/agents/<name>.md` 的 `model` 字段 | 仅 `~/.codebuddy/models.json` 池内模型 | 仅 `effort` | 零配置，密钥由平台代持 |
+| `.codebuddy/agents/<name>.md` 的 `model` 字段 | 仅 `~/.codebuddy/models.json` 池内模型 | `model` + `effort` | 零配置，密钥由平台代持 |
+| 项目 settings 的 `variantModels` | 池内模型，把 `lite`/`reasoning` 两档映射到具体 id | 只换模型 | 需先有 agent 或工具传参引用这两档 |
+| 环境变量 `CODEBUDDY_CODE_SUBAGENT_MODEL` | 池内模型，**全局**覆盖 | 只换模型，不控 effort | 一次性，用于临时对拍 |
 | skill 自带脚本直连 API | 任意厂家、任意端点 | 全部参数，含厂家私有参数 | 自管密钥、自己写代码 |
-| 环境变量 `CODEBUDDY_CODE_SUBAGENT_MODEL` | 池内模型，全局覆盖 | 只换模型，不控 effort | 一次性，用于临时对拍 |
 
 **多阶段任务走第一条**：一个阶段一个 agent 文件，`model` + `effort` 写进 frontmatter，
 skill 只负责编排派发顺序。改模型只改 frontmatter，编排逻辑不动。
 
-四个已验证的坑：
+### 模型解析优先级（源码实证，高→低）
+
+1. 环境变量 `CODEBUDDY_CODE_SUBAGENT_MODEL`（source `env-global`）
+2. Agent 工具调用的 `model` 参数，即 `lite` / `reasoning`（source `tool-input`；
+   传 `default` / `inherit` 视为不覆盖）
+3. agent frontmatter 的 `model`
+4. 继承主会话（source `inherit`）
+
+**agent frontmatter 不是硬约束**——上面 1、2 都能盖掉它。`/agents` 面板在环境变量生效时
+会显示「per-agent config is currently overridden」警告。
+
+### SKILL.md 自身也能指定模型（但只对一个阶段有效）
+
+frontmatter 支持 `model`、`context: fork`、`agent`（实测字段全集见下）。
+`context: fork` 会把 SKILL.md 正文当 prompt 派给子代理执行，`agent` 指定用哪个 agent 类型。
+
+```
+---
+name: deep-research
+description: ...
+context: fork
+agent: my-collector      # 该 agent 的 model 在其 frontmatter 里
+---
+```
+
+**但 `agent` 只能指定一个**，所以「步骤 1 用模型 A、步骤 2 用模型 B」仍然只能靠正文编排 +
+多个 agent 文件。SKILL.md 支持 `model` 但**不支持 `effort`**。
+
+skill frontmatter 实测字段：`name`、`description`、`allowed-tools`、`disable-model-invocation`
+/`disable`、`user-invocable`、`hooks`、`display_name`、`agent_created`、`context`、`agent`、`model`。
+
+六个已验证的坑：
 
 - 模型 id 必须精确匹配 `models.json` 里的 `id` 字段，否则**静默降级**为继承主会话模型——
   只在日志里 warn 一句，界面上看不出来
@@ -111,6 +143,9 @@ skill 只负责编排派发顺序。改模型只改 frontmatter，编排逻辑�
 - 新增或修改 agent 文件后**新开会话最稳**：`/agents` 管理器监听配置变更会热重载，
   但 ProductProvider 那条加载路径不保证，当前会话派发大概率报 "agent lookup failed"
 - `models.json` 含明文 apiKey，不要提交进 git
+- 在 skill 正文里写「步骤 1 用模型 A」是**软约束**，只有提示词效力；模型真正生效靠
+  agent frontmatter 或上面的优先级链
+- 编排层（判断要不要进下一阶段）始终跑在主会话模型上，这部分换不了模型
 
 ## 确定性初筛
 
