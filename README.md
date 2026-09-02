@@ -10,6 +10,7 @@
 |---|---|---|
 | [`site/`](site/) | 「聊哉梦呓」个人站：文章备份、独立发表与作品展示 | [`site/README.md`](site/README.md) |
 | [`apps/x-reader/`](apps/x-reader/) | 面向移动端的本地文档阅读器，支持 HTML、Markdown、JSON、Log 和纯文本 | [`apps/x-reader/GEMINI.md`](apps/x-reader/GEMINI.md) |
+| [`apps/stockfunnel/`](apps/stockfunnel/) | A 股三步漏斗选股工具：初筛、结构精筛、筹码定筛，含历史回测 | [`apps/stockfunnel/README.md`](apps/stockfunnel/README.md) |
 | [`skills/`](skills/) | 选题、素材搜集、正文写作、事实审校、标题打磨、证券研究等 Agent Skills | [`skills/README.md`](skills/README.md) |
 | [`prompts/`](prompts/) | 提示词方法与可复用提示词资料 | [`prompts/prompting-guide.md`](prompts/prompting-guide.md) |
 
@@ -87,7 +88,8 @@ npx skills add jimliu/baoyu-skills
 ```text
 dreamble/
 ├── apps/
-│   └── x-reader/       # 移动端本地文档阅读器
+│   ├── x-reader/       # 移动端本地文档阅读器
+│   └── stockfunnel/    # A 股三步漏斗选股与回测工具
 ├── site/               # Astro 静态个人站
 ├── skills/             # Agent Skills
 ├── prompts/            # 提示词与学习资料
