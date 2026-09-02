@@ -1,0 +1,15 @@
+#!/bin/bash
+# stockfunnel 命令行入口
+# 用法：./stockfunnel <子命令> [选项]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 清除 TRAE 等环境注入的 PYTHONHOME / PYTHONPATH，避免干扰 venv
+unset PYTHONHOME PYTHONPATH
+
+# 优先使用项目 venv，没有则回退到系统 python3
+if [ -f "$SCRIPT_DIR/.venv/bin/python3" ]; then
+    exec "$SCRIPT_DIR/.venv/bin/python3" "$SCRIPT_DIR/cli.py" "$@"
+else
+    exec python3 "$SCRIPT_DIR/cli.py" "$@"
+fi

@@ -94,3 +94,6 @@ dist/
 
 # astro
 .astro/
+
+# trae
+.trae-html-share-packages/
