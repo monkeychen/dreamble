@@ -1,6 +1,6 @@
 #!/bin/bash
 # stockfunnel 每日选股任务
-# 由 launchd（com.dreamble.stockfunnel）每天 20:00 触发，也可手动执行：
+# 由 launchd（com.dreamble.stockfunnel）每天 17:00 触发，也可手动执行：
 #   ./daily_run.sh
 # 流程：增量更新 → 筛选最近 5 天信号 → 写入 output/daily_screen.txt
 # 运行日志：output/daily_run.log
