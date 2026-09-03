@@ -509,37 +509,40 @@ def update(market_str: str = "all") -> None:
                     str(c) for c in existing_list if (CHUNKS / f"{c}.parquet").exists()))
 
             # 5. 更新指数
-            print("Updating indices...", flush=True)
-            idx_file = DATA / "index_daily.parquet"
-            if idx_file.exists():
-                old_idx = pd.read_parquet(idx_file)
-                idx_parts = []
-                for code in INDEX_CODES:
-                    try:
-                        rows = fetch_kline(code, start, end)
-                        if rows:
-                            new_df = pd.DataFrame(rows, columns=FIELDS.split(","))
-                            old_one = old_idx[old_idx["code"] == code]
-                            if not old_one.empty:
-                                combined = pd.concat([old_one, new_df], ignore_index=True)
-                                combined = combined.drop_duplicates(subset=["date"], keep="last")
-                                idx_parts.append(combined)
-                            else:
-                                idx_parts.append(new_df)
-                    except Exception as exc:
-                        print(f"  FAIL index {code}: {exc}", flush=True)
-                # 保留没更新到的指数
-                updated_codes = {p["code"].iloc[0] for p in idx_parts if len(p) > 0}
-                remaining = old_idx[~old_idx["code"].isin(updated_codes)]
-                if not remaining.empty:
-                    idx_parts.append(remaining)
-                if idx_parts:
-                    idx_all = pd.concat(idx_parts, ignore_index=True)
-                    idx_all = idx_all.sort_values(["code", "date"]).reset_index(drop=True)
-                    idx_all.to_parquet(idx_file)
-                    print(f"  index_daily.parquet: {len(idx_all)} rows", flush=True)
+            if data_ready:
+                print("Updating indices...", flush=True)
+                idx_file = DATA / "index_daily.parquet"
+                if idx_file.exists():
+                    old_idx = pd.read_parquet(idx_file)
+                    idx_parts = []
+                    for code in INDEX_CODES:
+                        try:
+                            rows = fetch_kline(code, start, end)
+                            if rows:
+                                new_df = pd.DataFrame(rows, columns=FIELDS.split(","))
+                                old_one = old_idx[old_idx["code"] == code]
+                                if not old_one.empty:
+                                    combined = pd.concat([old_one, new_df], ignore_index=True)
+                                    combined = combined.drop_duplicates(subset=["date"], keep="last")
+                                    idx_parts.append(combined)
+                                else:
+                                    idx_parts.append(new_df)
+                        except Exception as exc:
+                            print(f"  FAIL index {code}: {exc}", flush=True)
+                    # 保留没更新到的指数
+                    updated_codes = {p["code"].iloc[0] for p in idx_parts if len(p) > 0}
+                    remaining = old_idx[~old_idx["code"].isin(updated_codes)]
+                    if not remaining.empty:
+                        idx_parts.append(remaining)
+                    if idx_parts:
+                        idx_all = pd.concat(idx_parts, ignore_index=True)
+                        idx_all = idx_all.sort_values(["code", "date"]).reset_index(drop=True)
+                        idx_all.to_parquet(idx_file)
+                        print(f"  index_daily.parquet: {len(idx_all)} rows", flush=True)
+                else:
+                    download_indices(end)
             else:
-                download_indices(end)
+                print("Skipping indices (data not available).", flush=True)
 
         # 6. 重新合并（仅当有数据变更时才需要）
         if new_codes or (new_trade_days and data_ready):
