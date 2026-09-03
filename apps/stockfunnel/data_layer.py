@@ -252,6 +252,80 @@ def download_codes(codes: list[str], start: str, end: str,
     return len(failed)
 
 
+def get_latest_universe(markets: list[str]) -> tuple[list[str], pd.DataFrame]:
+    """轻量获取最新股票清单，只查最新交易日，用于增量更新时检测新股。
+
+    返回 (代码列表, 名称记录表)。
+    """
+    prefixes = get_prefixes(markets)
+    end = time.strftime("%Y-%m-%d")
+
+    # 取最近几个交易日，找到有数据的那天
+    recent_start = time.strftime("%Y-%m-%d", time.localtime(time.time() - 30 * 86400))
+    rs = bs.query_trade_dates(start_date=recent_start, end_date=end)
+    trade_days: list[str] = []
+    while rs.error_code == "0" and rs.next():
+        d, is_trading = rs.get_row_data()
+        if is_trading == "1":
+            trade_days.append(d)
+
+    latest_day = trade_days[-1] if trade_days else end
+    print(f"  latest trading day: {latest_day}", flush=True)
+
+    latest_name: dict[str, str] = {}
+    snapshots: list[tuple[str, str, str]] = []
+
+    need_all_stock = any(m in ("sh", "sz", "cyb") for m in markets)
+    need_star = "star" in markets
+
+    query_day: str | None = None
+    if need_all_stock:
+        # 从最近往回找，找到第一个有数据的交易日
+        for d in reversed(trade_days):
+            rs = bs.query_all_stock(day=d)
+            rows = []
+            while rs.error_code == "0" and rs.next():
+                rows.append(rs.get_row_data())
+            if rows:
+                query_day = d
+                for row in rows:
+                    code, name = row[0], row[-1]
+                    if not any(code.startswith(p) for p in prefixes):
+                        continue
+                    if code.startswith("sh.688") and "star" not in markets:
+                        continue
+                    latest_name[code] = name
+                    snapshots.append((d, code, name))
+                break
+        if query_day:
+            print(f"  {query_day}: {len(latest_name)} stocks (main board)", flush=True)
+        else:
+            print("  WARNING: no main board data found in recent days", flush=True)
+
+    if need_star:
+        ref_day = query_day or latest_day
+        rs = bs.query_stock_basic()
+        star_count = 0
+        while rs.error_code == "0" and rs.next():
+            row = rs.get_row_data()
+            code, name, ipo_date, out_date, stype, status = row
+            if not code.startswith("sh.688"):
+                continue
+            if status != "1":
+                continue
+            if ipo_date and ipo_date > ref_day:
+                continue
+            star_count += 1
+            latest_name[code] = name
+            snapshots.append((ref_day, code, name))
+        print(f"  STAR market: {star_count} stocks", flush=True)
+
+    names = pd.DataFrame(snapshots, columns=["date", "code", "name"])
+    codes = sorted(latest_name)
+    print(f"  total: {len(codes)} stocks", flush=True)
+    return codes, names
+
+
 def download_indices(end: str) -> None:
     """下载所有指数日线。"""
     idx_file = DATA / "index_daily.parquet"
@@ -355,9 +429,9 @@ def update(market_str: str = "all") -> None:
             print("already up to date", flush=True)
             return
 
-        # 2. 检查有没有新股票需要补
+        # 2. 检查有没有新股票需要补（只查最新清单，不从 2022 年遍历）
         print("Checking for new stocks...", flush=True)
-        all_codes, names_df = build_universe(markets)
+        all_codes, names_df = get_latest_universe(markets)
         # 合并 names
         old_names = pd.read_parquet(DATA / "names.parquet")
         combined_names = pd.concat([old_names, names_df], ignore_index=True)
@@ -369,73 +443,114 @@ def update(market_str: str = "all") -> None:
             print(f"New stocks to backfill: {len(new_codes)}", flush=True)
             download_codes(new_codes, START_DATE, end, label="new_stocks")
 
-        # 3. 增量更新已有股票（从 last_date 开始，留一天重叠）
-        start = last_date
-        existing_list = [c for c in existing_codes if (CHUNKS / f"{c}.parquet").exists()]
-        print(f"Updating {len(existing_list)} existing stocks from {start}...", flush=True)
+        # 3. 检查是否有新交易日
+        rs = bs.query_trade_dates(start_date=last_date, end_date=end)
+        new_trade_days: list[str] = []
+        while rs.error_code == "0" and rs.next():
+            d, is_trading = rs.get_row_data()
+            if is_trading == "1" and d > last_date:
+                new_trade_days.append(d)
 
-        failed = 0
-        consec_err = 0
-        for i, code in enumerate(existing_list):
-            chunk_file = CHUNKS / f"{code}.parquet"
-            try:
-                new_rows = fetch_kline(code, start, end)
-                consec_err = 0
-                if new_rows:
-                    new_df = pd.DataFrame(new_rows, columns=FIELDS.split(","))
-                    old_df = pd.read_parquet(chunk_file)
-                    combined = pd.concat([old_df, new_df], ignore_index=True)
-                    combined = combined.drop_duplicates(subset=["date"], keep="last")
-                    combined = combined.sort_values("date").reset_index(drop=True)
-                    combined.to_parquet(chunk_file)
-            except Exception as exc:
-                failed += 1
-                consec_err += 1
-                print(f"  FAIL {code}: {exc}", flush=True)
-                if consec_err >= 10:
-                    print("  too many consecutive errors, sleeping 60s...", flush=True)
-                    time.sleep(60)
-                    consec_err = 0
-            if (i + 1) % 500 == 0:
-                print(f"  progress {i+1}/{len(existing_list)} failed={failed}", flush=True)
+        data_ready = True
 
-        # 4. 更新指数
-        print("Updating indices...", flush=True)
-        idx_file = DATA / "index_daily.parquet"
-        if idx_file.exists():
-            old_idx = pd.read_parquet(idx_file)
-            idx_parts = []
-            for code in INDEX_CODES:
-                try:
-                    rows = fetch_kline(code, start, end)
-                    if rows:
-                        new_df = pd.DataFrame(rows, columns=FIELDS.split(","))
-                        old_one = old_idx[old_idx["code"] == code]
-                        if not old_one.empty:
-                            combined = pd.concat([old_one, new_df], ignore_index=True)
-                            combined = combined.drop_duplicates(subset=["date"], keep="last")
-                            idx_parts.append(combined)
-                        else:
-                            idx_parts.append(new_df)
-                except Exception as exc:
-                    print(f"  FAIL index {code}: {exc}", flush=True)
-            # 保留没更新到的指数
-            updated_codes = {p["code"].iloc[0] for p in idx_parts if len(p) > 0}
-            remaining = old_idx[~old_idx["code"].isin(updated_codes)]
-            if not remaining.empty:
-                idx_parts.append(remaining)
-            if idx_parts:
-                idx_all = pd.concat(idx_parts, ignore_index=True)
-                idx_all = idx_all.sort_values(["code", "date"]).reset_index(drop=True)
-                idx_all.to_parquet(idx_file)
-                print(f"  index_daily.parquet: {len(idx_all)} rows", flush=True)
+        if not new_trade_days:
+            print("No new trading days since last update.", flush=True)
         else:
-            download_indices(end)
+            print(f"New trading days: {new_trade_days}", flush=True)
 
-        # 5. 重新合并
+            # 探针：先拉一只股票确认新交易日数据已发布，避免 5000+ 只空跑
+            try:
+                probe_rows = fetch_kline("sh.600519", last_date, end)
+                probe_dates = {r[0] for r in probe_rows} if probe_rows else set()
+                if any(d in probe_dates for d in new_trade_days):
+                    print(f"  probe sh.600519: data available for {new_trade_days}", flush=True)
+                else:
+                    data_ready = False
+                    print(f"  probe sh.600519: no data for {new_trade_days}, "
+                          f"new day data not yet published, skipping stock update", flush=True)
+            except Exception as exc:
+                data_ready = False
+                print(f"  probe sh.600519 failed: {exc}, skipping stock update", flush=True)
+
+            # 4. 增量更新已有股票
+            start = last_date
+            existing_list = [c for c in existing_codes if (CHUNKS / f"{c}.parquet").exists()]
+            if not data_ready:
+                existing_list = []
+            print(f"Updating {len(existing_list)} existing stocks from {start}...", flush=True)
+
+            failed = 0
+            consec_err = 0
+            for i, code in enumerate(existing_list):
+                chunk_file = CHUNKS / f"{code}.parquet"
+                try:
+                    new_rows = fetch_kline(code, start, end)
+                    consec_err = 0
+                    if new_rows:
+                        new_df = pd.DataFrame(new_rows, columns=FIELDS.split(","))
+                        old_df = pd.read_parquet(chunk_file)
+                        combined = pd.concat([old_df, new_df], ignore_index=True)
+                        combined = combined.drop_duplicates(subset=["date"], keep="last")
+                        combined = combined.sort_values("date").reset_index(drop=True)
+                        combined.to_parquet(chunk_file)
+                except Exception as exc:
+                    failed += 1
+                    consec_err += 1
+                    print(f"  FAIL {code}: {exc}", flush=True)
+                    if consec_err >= 10:
+                        print("  too many consecutive errors, sleeping 60s...", flush=True)
+                        time.sleep(60)
+                        consec_err = 0
+                if (i + 1) % 500 == 0:
+                    print(f"  progress {i+1}/{len(existing_list)} failed={failed}", flush=True)
+
+            if failed:
+                (DATA / "failed_update.txt").write_text("\n".join(
+                    str(c) for c in existing_list if (CHUNKS / f"{c}.parquet").exists()))
+
+            # 5. 更新指数
+            print("Updating indices...", flush=True)
+            idx_file = DATA / "index_daily.parquet"
+            if idx_file.exists():
+                old_idx = pd.read_parquet(idx_file)
+                idx_parts = []
+                for code in INDEX_CODES:
+                    try:
+                        rows = fetch_kline(code, start, end)
+                        if rows:
+                            new_df = pd.DataFrame(rows, columns=FIELDS.split(","))
+                            old_one = old_idx[old_idx["code"] == code]
+                            if not old_one.empty:
+                                combined = pd.concat([old_one, new_df], ignore_index=True)
+                                combined = combined.drop_duplicates(subset=["date"], keep="last")
+                                idx_parts.append(combined)
+                            else:
+                                idx_parts.append(new_df)
+                    except Exception as exc:
+                        print(f"  FAIL index {code}: {exc}", flush=True)
+                # 保留没更新到的指数
+                updated_codes = {p["code"].iloc[0] for p in idx_parts if len(p) > 0}
+                remaining = old_idx[~old_idx["code"].isin(updated_codes)]
+                if not remaining.empty:
+                    idx_parts.append(remaining)
+                if idx_parts:
+                    idx_all = pd.concat(idx_parts, ignore_index=True)
+                    idx_all = idx_all.sort_values(["code", "date"]).reset_index(drop=True)
+                    idx_all.to_parquet(idx_file)
+                    print(f"  index_daily.parquet: {len(idx_all)} rows", flush=True)
+            else:
+                download_indices(end)
+
+        # 6. 重新合并
         merge_chunks(markets)
-        print(f"Update done: {len(existing_list)-failed} ok, {failed} failed, "
-              f"{len(new_codes)} new stocks added", flush=True)
+        if not new_trade_days:
+            print(f"Update done: no new trading days, {len(new_codes)} new stocks added", flush=True)
+        elif not data_ready:
+            print(f"Update done: skipped (data not yet available), "
+                  f"{len(new_codes)} new stocks added", flush=True)
+        else:
+            print(f"Update done: {len(existing_list)-failed} ok, {failed} failed, "
+                  f"{len(new_codes)} new stocks added", flush=True)
     finally:
         _logout()
 

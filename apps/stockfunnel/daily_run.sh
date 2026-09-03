@@ -28,7 +28,7 @@ START_TS=$(date +%s)
     UPDATE_OUTPUT=$(./stockfunnel update 2>&1)
     UPDATE_RC=$?
     echo "[update] 退出码 ${UPDATE_RC}"
-    echo "$UPDATE_OUTPUT" | tail -3 | sed 's/^/[update] /'
+    echo "$UPDATE_OUTPUT" | tail -8 | sed 's/^/[update] /'
     if [ $UPDATE_RC -ne 0 ]; then
         echo "[update] 警告：更新失败，将基于本地已有数据筛选"
     fi
