@@ -541,8 +541,11 @@ def update(market_str: str = "all") -> None:
             else:
                 download_indices(end)
 
-        # 6. 重新合并
-        merge_chunks(markets)
+        # 6. 重新合并（仅当有数据变更时才需要）
+        if new_codes or (new_trade_days and data_ready):
+            merge_chunks(markets)
+        else:
+            print("No data changes, skipping merge.", flush=True)
         if not new_trade_days:
             print(f"Update done: no new trading days, {len(new_codes)} new stocks added", flush=True)
         elif not data_ready:
