@@ -118,19 +118,27 @@ def cmd_screen(args) -> None:
 
     signals, funnel = strategy.run_screen(args.market)
 
-    if signals.empty:
-        print("没有符合条件的信号。")
-        return
+    # 取交易日历：最近N个交易日（而非最近N个信号日）
+    import pandas as pd
+    all_trade_dates = pd.read_parquet(
+        data_layer.DATA / "daily.parquet", columns=["date"]
+    )["date"].drop_duplicates().sort_values().to_numpy()
 
-    # 显示最近N天
-    last_dates = sorted(signals["date"].unique())[-args.days:]
+    if args.all:
+        if signals.empty:
+            print("没有符合条件的信号。")
+            return
+        last_dates = sorted(signals["date"].unique())
+    else:
+        last_dates = list(all_trade_dates[-args.days:])
+
     idx_df = data_layer.load_indices()
     market_ok = strategy.market_above_ma(
         idx_df, strategy.STRATEGY_PARAMS["market_index"],
         strategy.STRATEGY_PARAMS["market_ma_days"])
 
     for d in last_dates:
-        day = signals[signals["date"] == d]
+        day = signals[signals["date"] == d] if not signals.empty else signals.iloc[0:0]
         mkt = "✓ 可操作" if market_ok.get(d, False) else "✗ 空仓观望"
         print(f"--- {d}  {mkt} ---")
         if day.empty:
@@ -143,7 +151,8 @@ def cmd_screen(args) -> None:
                       f"RS{r['rs_rank']:.1f}%")
         print()
 
-    print(f"共 {len(signals)} 个历史信号，{signals['date'].nunique()} 个信号日")
+    if not signals.empty:
+        print(f"共 {len(signals)} 个历史信号，{signals['date'].nunique()} 个信号日")
 
     # 漏斗统计
     if not funnel.empty:
@@ -255,7 +264,7 @@ def main() -> None:
     # screen
     p_screen = sub.add_parser("screen", help="强势股筛选")
     _add_market(p_screen)
-    p_screen.add_argument("--days", type=int, default=5, help="显示最近N天（默认5）")
+    p_screen.add_argument("--days", type=int, default=5, help="显示最近N个交易日（默认5）")
     p_screen.add_argument("--all", action="store_true", help="输出所有历史信号")
     p_screen.set_defaults(func=cmd_screen)
 
