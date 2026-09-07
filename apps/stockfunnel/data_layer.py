@@ -36,6 +36,9 @@ MARKET_PREFIXES: dict[str, tuple[str, ...]] = {
     "cyb": ("sz.300", "sz.301"),
 }
 
+# 数据发布探针：任一只有新数据即视为已发布（多只表决防单票停牌误判）
+PROBE_CODES: list[str] = ["sh.600519", "sz.000001", "sz.300750"]
+
 INDEX_CODES: list[str] = [
     "sh.000001",  # 上证指数
     "sh.000300",  # 沪深300
@@ -347,12 +350,14 @@ def download_indices(end: str) -> None:
 
 # ---------- 合并 ----------
 
-def merge_chunks(markets: list[str] | None = None) -> pd.DataFrame:
-    """合并分片到 daily.parquet。可指定市场范围，None 表示全部。"""
+def merge_chunks() -> pd.DataFrame:
+    """合并分片到 daily.parquet。
+
+    始终合并 chunks/ 下的全部文件：daily.parquet 是全局主文件，
+    所有读取路径（screen/backtest/info/query）都依赖它包含全市场数据。
+    -m 参数只影响下载范围，不影响合并范围。
+    """
     files = sorted(CHUNKS.glob("*.parquet"))
-    if markets:
-        prefixes = get_prefixes(markets)
-        files = [f for f in files if any(f.stem.startswith(p) for p in prefixes)]
     print(f"merging {len(files)} chunks...", flush=True)
 
     parts: list[pd.DataFrame] = []
@@ -375,11 +380,45 @@ def merge_chunks(markets: list[str] | None = None) -> pd.DataFrame:
 
 # ---------- 公开 API ----------
 
+REBUILD_MARKER = ".rebuild_marker"
+
+
+def clear_stale_chunks(markets: list[str], chunks_dir: Path,
+                       marker: Path) -> int:
+    """清除市场范围内的旧分片，返回删除数量。
+
+    续传机制：首次 rebuild 创建 marker 并清掉范围内全部分片；
+    若上次 rebuild 中断（marker 仍在），只清掉 marker 之前的旧文件，
+    保留中断前已重新下载的分片，实现断点续传。
+    """
+    if not chunks_dir.exists():
+        return 0
+    prefixes = get_prefixes(markets)
+    cutoff = marker.stat().st_mtime if marker.exists() else None
+    removed = 0
+    for f in chunks_dir.glob("*.parquet"):
+        if not any(f.stem.startswith(p) for p in prefixes):
+            continue
+        if cutoff is not None and f.stat().st_mtime >= cutoff:
+            continue  # 上次 rebuild 已重新下载的分片，保留续传
+        f.unlink()
+        removed += 1
+    return removed
+
+
 def rebuild(market_str: str = "all") -> None:
-    """全量重建：清掉旧数据，从头下载。"""
+    """全量重建：清空范围内旧分片，从头下载。中断后重跑可续传。"""
     markets = resolve_markets(market_str)
     print(f"=== Rebuilding data for markets: {', '.join(markets)} ===")
     DATA.mkdir(parents=True, exist_ok=True)
+
+    marker = DATA / REBUILD_MARKER
+    removed = clear_stale_chunks(markets, CHUNKS, marker)
+    resumed = marker.exists()
+    print(f"Cleared {removed} stale chunk files"
+          + (" (resuming interrupted rebuild)" if resumed else ""), flush=True)
+    if not marker.exists():
+        marker.touch()
 
     _login()
     try:
@@ -389,7 +428,7 @@ def rebuild(market_str: str = "all") -> None:
         names.to_parquet(DATA / "names.parquet")
         pd.DataFrame({"code": codes}).to_parquet(DATA / "universe.parquet")
 
-        # 2. 下载个股数据
+        # 2. 下载个股数据（已存在的分片会跳过 → 续传）
         print("Downloading stock data...", flush=True)
         end = time.strftime("%Y-%m-%d")
         download_codes(codes, START_DATE, end, label="stocks")
@@ -398,8 +437,9 @@ def rebuild(market_str: str = "all") -> None:
         print("Downloading index data...", flush=True)
         download_indices(end)
 
-        # 4. 合并
-        merge_chunks(markets)
+        # 4. 合并（始终全量）
+        merge_chunks()
+        marker.unlink(missing_ok=True)
         print("Rebuild complete.")
     finally:
         _logout()
@@ -458,31 +498,39 @@ def update(market_str: str = "all") -> None:
         else:
             print(f"New trading days: {new_trade_days}", flush=True)
 
-            # 探针：先拉一只股票确认新交易日数据已发布，避免 5000+ 只空跑
-            try:
-                probe_rows = fetch_kline("sh.600519", last_date, end)
-                probe_dates = {r[0] for r in probe_rows} if probe_rows else set()
-                if any(d in probe_dates for d in new_trade_days):
-                    print(f"  probe sh.600519: data available for {new_trade_days}", flush=True)
-                else:
-                    data_ready = False
-                    print(f"  probe sh.600519: no data for {new_trade_days}, "
-                          f"new day data not yet published, skipping stock update", flush=True)
-            except Exception as exc:
-                data_ready = False
-                print(f"  probe sh.600519 failed: {exc}, skipping stock update", flush=True)
+            # 探针：先拉几只大票确认新交易日数据已发布，避免 5000+ 只空跑。
+            # 多只表决（任一有数据即视为已发布），防止单只停牌导致误判。
+            data_ready = False
+            for probe_code in PROBE_CODES:
+                try:
+                    probe_rows = fetch_kline(probe_code, last_date, end)
+                    probe_dates = {r[0] for r in probe_rows} if probe_rows else set()
+                    if any(d in probe_dates for d in new_trade_days):
+                        print(f"  probe {probe_code}: data available for {new_trade_days}", flush=True)
+                        data_ready = True
+                        break
+                    print(f"  probe {probe_code}: no data for {new_trade_days}", flush=True)
+                except Exception as exc:
+                    print(f"  probe {probe_code} failed: {exc}", flush=True)
+            if not data_ready:
+                print("  new day data not yet published (all probes empty), "
+                      "skipping stock update", flush=True)
 
             # 4. 增量更新已有股票
-            start = last_date
+            # 每只股票从自己 chunk 的最后日期起拉（而非全局 last_date）：
+            # 上次更新失败的股票这次会自动补齐缺口，不会永久缺数据。
+            per_code_last = existing.groupby("code")["date"].max().to_dict()
             existing_list = [c for c in existing_codes if (CHUNKS / f"{c}.parquet").exists()]
             if not data_ready:
                 existing_list = []
-            print(f"Updating {len(existing_list)} existing stocks from {start}...", flush=True)
+            print(f"Updating {len(existing_list)} existing stocks "
+                  f"(per-stock incremental from own last date)...", flush=True)
 
-            failed = 0
+            failed_codes: list[str] = []
             consec_err = 0
             for i, code in enumerate(existing_list):
                 chunk_file = CHUNKS / f"{code}.parquet"
+                start = per_code_last.get(code) or START_DATE
                 try:
                     new_rows = fetch_kline(code, start, end)
                     consec_err = 0
@@ -494,7 +542,7 @@ def update(market_str: str = "all") -> None:
                         combined = combined.sort_values("date").reset_index(drop=True)
                         combined.to_parquet(chunk_file)
                 except Exception as exc:
-                    failed += 1
+                    failed_codes.append(code)
                     consec_err += 1
                     print(f"  FAIL {code}: {exc}", flush=True)
                     if consec_err >= 10:
@@ -502,11 +550,16 @@ def update(market_str: str = "all") -> None:
                         time.sleep(60)
                         consec_err = 0
                 if (i + 1) % 500 == 0:
-                    print(f"  progress {i+1}/{len(existing_list)} failed={failed}", flush=True)
+                    print(f"  progress {i+1}/{len(existing_list)} "
+                          f"failed={len(failed_codes)}", flush=True)
 
-            if failed:
-                (DATA / "failed_update.txt").write_text("\n".join(
-                    str(c) for c in existing_list if (CHUNKS / f"{c}.parquet").exists()))
+            # 失败列表只写真正失败的代码，供排查用；全部成功则清掉旧文件
+            failed_file = DATA / "failed_update.txt"
+            if failed_codes:
+                failed_file.write_text("\n".join(failed_codes))
+            else:
+                failed_file.unlink(missing_ok=True)
+            failed = len(failed_codes)
 
             # 5. 更新指数
             if data_ready:
@@ -544,9 +597,9 @@ def update(market_str: str = "all") -> None:
             else:
                 print("Skipping indices (data not available).", flush=True)
 
-        # 6. 重新合并（仅当有数据变更时才需要）
+        # 6. 重新合并（仅当有数据变更时才需要；始终全量合并，不受 -m 影响）
         if new_codes or (new_trade_days and data_ready):
-            merge_chunks(markets)
+            merge_chunks()
         else:
             print("No data changes, skipping merge.", flush=True)
         if not new_trade_days:

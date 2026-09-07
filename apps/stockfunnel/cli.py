@@ -73,18 +73,29 @@ def cmd_info(args) -> None:
         names = pd.read_parquet(names_file)
         print(f"  名称记录: {len(names)} 条")
 
-    # 最近几个交易日有没有信号
+    # 最近信号：读上次 screen/backtest 的缓存，不重跑全量筛选（秒级返回）
     print("\n  最近信号:")
-    signals, _ = strategy.run_screen(args.market)
-    if signals.empty:
-        print("    （无）")
+    sig_file = data_layer.DATA / "last_signals.parquet"
+    meta_file = data_layer.DATA / "last_signals.json"
+    meta = json.loads(meta_file.read_text()) if meta_file.exists() else {}
+    if not sig_file.exists():
+        print("    （尚无缓存，运行一次 stockfunnel screen 后可见）")
     else:
-        last_dates = sorted(signals["date"].unique())[-3:]
-        for d in last_dates:
-            day = signals[signals["date"] == d]
-            print(f"    {d}: {len(day)} 只 — "
-                  + ", ".join(f"{r['code']} {r['name']}" for _, r in day.head(3).iterrows())
-                  + ("..." if len(day) > 3 else ""))
+        signals = pd.read_parquet(sig_file)
+        if signals.empty:
+            print("    （无）")
+        else:
+            last_dates = sorted(signals["date"].unique())[-3:]
+            for d in last_dates:
+                day = signals[signals["date"] == d]
+                print(f"    {d}: {len(day)} 只 — "
+                      + ", ".join(f"{r['code']} {r['name']}" for _, r in day.head(3).iterrows())
+                      + ("..." if len(day) > 3 else ""))
+    if meta:
+        note = ""
+        if meta.get("market") and meta["market"] != args.market:
+            note = f"，市场范围 {meta['market']}（当前查询 {args.market}）"
+        print(f"    [缓存于 {meta.get('run_at', '?')}{note}]")
 
 
 def cmd_update(args) -> None:
@@ -99,7 +110,8 @@ def cmd_update(args) -> None:
 def cmd_rebuild(args) -> None:
     """全量重建。"""
     print(f"市场范围: {args.market}")
-    print("⚠️  全量重建会清空已有数据并从头下载，需要较长时间。")
+    print("⚠️  全量重建会清空该市场范围的已有分片并从头下载，需要较长时间。")
+    print("    中断后重跑 rebuild 可续传（已重新下载的分片不会重复下载）。")
     if not args.yes:
         resp = input("确认继续？[y/N] ").strip().lower()
         if resp not in ("y", "yes"):

@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -177,11 +179,18 @@ def check_consolidation(s: StockData, t: int, p: dict) -> bool:
     return True
 
 
+def is_excluded_name(name: str) -> bool:
+    """剔除 ST / *ST / 退市整理股票。"""
+    n = str(name).upper()
+    return "ST" in n or "退" in n
+
+
 def step1_rs_candidates(stocks: dict[str, StockData],
                         rs_ranks: dict[str, np.ndarray],
                         all_dates: np.ndarray,
-                        p: dict) -> pd.DataFrame:
-    """第一步初筛：RS 排名 + 靠近高点 + 站MA20。"""
+                        p: dict,
+                        name_latest: pd.Series | None = None) -> pd.DataFrame:
+    """第一步初筛：RS 排名 + 靠近高点 + 站MA20，剔除 ST/退市。"""
     pct = p["rs_rank_pct"]
     near_pct = p["near_high_pct"] / 100
     lookback = p["near_high_lookback"]
@@ -191,6 +200,9 @@ def step1_rs_candidates(stocks: dict[str, StockData],
     for code, s in stocks.items():
         rs = rs_ranks.get(code)
         if rs is None:
+            continue
+        # 剔除 ST / 退市整理（用最新名称判断）
+        if name_latest is not None and is_excluded_name(name_latest.get(code, "")):
             continue
         # 对齐：s.dates → all_dates
         for i, d in enumerate(s.dates):
@@ -209,7 +221,6 @@ def step1_rs_candidates(stocks: dict[str, StockData],
             hh = np.nanmax(s.high[lo:i+1])
             if hh > 0 and s.close[i] < hh * near_pct:
                 continue
-            # 剔除 ST 和停牌
             rows.append({"date": d, "code": code, "t": i})
 
     return pd.DataFrame(rows)
@@ -252,7 +263,7 @@ def run_screen(market_str: str = "all",
 
     # 第一步
     print("Step 1: RS screening...", flush=True)
-    c1 = step1_rs_candidates(stocks, rs_ranks, all_dates, p)
+    c1 = step1_rs_candidates(stocks, rs_ranks, all_dates, p, name_latest)
     print(f"  Step 1 candidates: {len(c1)}", flush=True)
 
     # 大盘过滤
@@ -315,6 +326,21 @@ def run_screen(market_str: str = "all",
     funnel = pd.DataFrame(funnel_rows)
     print(f"Step 2 (breakout check): {sum(r['step2'] for r in funnel_rows)} total", flush=True)
     print(f"Step 3 (consolidation): {len(signals)} signals", flush=True)
+
+    # 缓存信号供 info 快速展示（info 不再重跑全量筛选）
+    try:
+        if not signals.empty:
+            signals.to_parquet(DATA / "last_signals.parquet")
+        else:
+            (DATA / "last_signals.parquet").unlink(missing_ok=True)
+        (DATA / "last_signals.json").write_text(json.dumps({
+            "market": market_str,
+            "n_signals": len(signals),
+            "run_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        }, ensure_ascii=False))
+    except Exception as exc:
+        print(f"  warning: failed to cache signals: {exc}", flush=True)
+
     return signals, funnel
 
 
