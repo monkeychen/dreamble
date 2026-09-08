@@ -8,7 +8,7 @@
 
 set -u
 
-PROJECT_DIR="/Users/chenzhian/workspace/ai/dreamble/apps/stockfunnel"
+PROJECT_DIR="$HOME/workspace/ai/dreamble/apps/stockfunnel"
 OUTPUT_DIR="$PROJECT_DIR/output"
 RESULT_FILE="$OUTPUT_DIR/daily_screen.txt"
 TIMING_FILE="$OUTPUT_DIR/daily_timing.txt"
