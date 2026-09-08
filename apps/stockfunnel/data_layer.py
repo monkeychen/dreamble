@@ -172,22 +172,31 @@ def build_universe(markets: list[str]) -> tuple[list[str], pd.DataFrame]:
             print(f"  universe {d}: {len(latest_name)} stocks so far", flush=True)
 
     # 3. 科创板用 stock_basic 补（query_all_stock 查不到）
+    #    退市股只要退市日在数据范围内也保留，消除幸存者偏差
     if need_star:
         rs = bs.query_stock_basic()
         star_count = 0
+        star_delisted = 0
         while rs.error_code == "0" and rs.next():
             row = rs.get_row_data()
             code, name, ipo_date, out_date, stype, status = row
             if not code.startswith("sh.688"):
                 continue
             if status != "1":
-                continue
+                if not out_date or out_date < START_DATE:
+                    continue  # 数据范围开始前就退市的不要
+                star_delisted += 1
             if ipo_date and ipo_date > trade_days[-1]:
                 continue
             star_count += 1
             latest_name[code] = name
-            snapshots.append((trade_days[-1], code, name))
-        print(f"  STAR market: {star_count} stocks", flush=True)
+            # 快照放在上市日（或数据起点），供时点名称查询回溯
+            snap_d = trade_days[0]
+            if ipo_date:
+                snap_d = next((d for d in trade_days if d >= ipo_date), trade_days[-1])
+            snapshots.append((snap_d, code, name))
+        print(f"  STAR market: {star_count} stocks "
+              f"(incl. {star_delisted} delisted)", flush=True)
 
     names = pd.DataFrame(snapshots, columns=["date", "code", "name"])
     codes = sorted(latest_name)
