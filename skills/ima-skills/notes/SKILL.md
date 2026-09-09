@@ -1,3 +1,7 @@
+---
+description: "ima 个人笔记管理：搜索笔记、列出笔记本、读取笔记正文、新建笔记、向已有笔记追加内容。触发词：笔记、笔记本、记一下、新建笔记、追加到笔记。⚠️ 加载本模块前必须先读取根 SKILL.md（凭证检查、UTF-8 校验、ima_api 调用模板均定义在那里）。"
+---
+
 # Notes (笔记)
 
 > ⛔ Before ANY write (`import_doc`/`append_doc`): validate ALL string fields (`content`, `title`) are legal UTF-8.

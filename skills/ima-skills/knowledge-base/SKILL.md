@@ -1,3 +1,7 @@
+---
+description: "ima 知识库管理：上传文件、添加网页或微信公众号文章、把笔记加入知识库、搜索与浏览知识库内容、文件夹操作、获取与导出原文。触发词：知识库、上传到知识库、添加到知识库、查看原文。⚠️ 加载本模块前必须先读取根 SKILL.md（凭证检查、ima_api 调用模板均定义在那里）。"
+---
+
 # Knowledge Base (知识库)
 
 API base path: `openapi/wiki/v1` — 完整数据结构和接口参数详见 `references/api.md`。

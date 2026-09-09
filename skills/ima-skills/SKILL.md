@@ -1,6 +1,6 @@
 ---
 name: ima-skills
-description: ""
+description: "腾讯 ima 笔记与知识库管理。用于搜索/新建/追加个人笔记，以及向知识库上传文件、添加网页或微信文章、搜索与浏览知识库内容、获取原文。用户提到「ima」「笔记」「笔记本」「知识库」「记到笔记本」「添加到知识库」「查看原文」时使用。"
 version: 1.1.9
 homepage: "https://ima.qq.com"
 display_name: "腾讯ima"
