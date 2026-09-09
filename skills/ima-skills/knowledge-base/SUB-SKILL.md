@@ -1,14 +1,13 @@
----
-description: "ima 知识库管理：上传文件、添加网页或微信公众号文章、把笔记加入知识库、搜索与浏览知识库内容、文件夹操作、获取与导出原文。触发词：知识库、上传到知识库、添加到知识库、查看原文。⚠️ 加载本模块前必须先读取根 SKILL.md（凭证检查、ima_api 调用模板均定义在那里）。"
----
-
 # Knowledge Base (知识库)
+
+> 📦 **本文件是 `ima-skills` 的子模块，不是独立技能。** 文件名刻意定为 `SUB-SKILL.md`，避免被技能扫描器（深度 5 层、见 `SKILL.md` 就注册）误注册为独立技能。
+> ⚠️ **读取本文件前必须先加载根 `SKILL.md`** —— 凭证检查、`ima_api` 调用模板全部定义在那里，本文件不重复定义。
 
 API base path: `openapi/wiki/v1` — 完整数据结构和接口参数详见 `references/api.md`。
 
 ## 脚本路径（执行前必须先解析）
 
-本模块的两个辅助脚本 `preflight-check.cjs`、`cos-upload.cjs` 位于**本 SKILL.md 同级目录**下的 `scripts/`。
+本模块的两个辅助脚本 `preflight-check.cjs`、`cos-upload.cjs` 位于**本文件（`SUB-SKILL.md`）同级目录**下的 `scripts/`。
 下文所有命令中的 `$KB_SCRIPTS` 都指该目录的**绝对路径**。不要用相对路径，也不要照抄任何硬编码目录。
 
 ```bash

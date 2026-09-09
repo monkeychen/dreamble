@@ -1,8 +1,7 @@
----
-description: "ima 个人笔记管理：搜索笔记、列出笔记本、读取笔记正文、新建笔记、向已有笔记追加内容。触发词：笔记、笔记本、记一下、新建笔记、追加到笔记。⚠️ 加载本模块前必须先读取根 SKILL.md（凭证检查、UTF-8 校验、ima_api 调用模板均定义在那里）。"
----
-
 # Notes (笔记)
+
+> 📦 **本文件是 `ima-skills` 的子模块，不是独立技能。** 文件名刻意定为 `SUB-SKILL.md`，避免被技能扫描器（深度 5 层、见 `SKILL.md` 就注册）误注册为独立技能。
+> ⚠️ **读取本文件前必须先加载根 `SKILL.md`** —— 凭证检查、UTF-8 编码校验、`ima_api` 调用模板全部定义在那里，本文件不重复定义。
 
 > ⛔ Before ANY write (`import_doc`/`append_doc`): validate ALL string fields (`content`, `title`) are legal UTF-8.
 > Non-UTF-8 content causes irreversible garbled text in IMA. See root SKILL.md § MANDATORY RULES for platform-specific validation methods.
@@ -170,6 +169,21 @@ ima_api "openapi/note/v1/search_note" '{"search_type": 1, "query_info": {"conten
 - **`folder_type`：** `0`=用户自建，`1`=全部笔记（根目录），`2`=未分类
 
 ## 注意事项
+
+### ⚠️ 实测行为修正（2026-09-09 本机验证，优先于下方通用说明）
+
+- **`list_note` 游标分页不可用**：响应仅含 `note_book_list` 与 `is_end`，**不返回 `next_cursor`**，
+  且 `is_end` 恒为 `false`。`limit` 上限为 **20**（传更大值报 `invalid ListNoteReq.Limit`）。
+  → 需要全量笔记时：先用 `list_notebook` 汇总各笔记本 `note_number` 得到总数，
+  再按每个笔记本的 `folder_id` 分别调用 `list_note` 取回，勿依赖游标翻页。
+- **`sort_type` 只有 `0` 靠谱**：`0`（更新时间）严格按 `modify_time` 降序，**首条即全局最新**；
+  `1`（创建时间）排序无效，返回顺序与 `0` 接近但不是按创建时间排。
+  → 回答「最近新增/修改了哪些笔记」时统一用 `sort_type: 0` 拉列表，再在本地按
+  `create_time` / `modify_time` 与当天零点时间戳比对过滤。
+- **`list_notebook` 列表字段名是 `data.note_folder_infos`**，不是 `note_folder_list`。
+- 时间字段均为 **Unix 毫秒**时间戳（13 位），转换时除以 1000。
+
+### 通用
 
 - `folder_id` 不可为 `"0"`，根目录 ID 格式为 `user_list_{userid}`（从 `folder_type=1` 的笔记本条目获取）
 - 笔记内容有大小上限，超过时返回 `100009`，可拆分为多次 `append_doc` 写入

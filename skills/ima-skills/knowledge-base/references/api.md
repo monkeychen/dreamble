@@ -503,7 +503,7 @@ POST /openapi/wiki/v1/get_media_info
 3. **未提供 `--content-type`** → 使用扩展名
 4. **两者都无法识别** → 拒绝处理
 
-> 脚本位于本模块 `scripts/` 目录，`$KB_SCRIPTS` 为其绝对路径（解析方式见 `knowledge-base/SKILL.md` 顶部）。
+> 脚本位于本模块 `scripts/` 目录，`$KB_SCRIPTS` 为其绝对路径（解析方式见 `knowledge-base/SUB-SKILL.md` 顶部）。
 
 ```bash
 # 有扩展名（自动推断）
