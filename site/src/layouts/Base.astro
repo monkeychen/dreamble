@@ -48,6 +48,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="theme-color" content="#211c15" media="(prefers-color-scheme: dark)" />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" type="application/rss+xml" title="聊哉梦呓" href="/rss.xml" />
+    <!-- 百度统计（is:inline 保持原样，避免被 Astro 打包改造成模块外链） -->
+    <script is:inline>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement('script');
+        hm.src = 'https://hm.baidu.com/hm.js?e1bc6aee4e17c2978f9313f7fd6e872a';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
   </head>
   <body>
     <header class="site">
