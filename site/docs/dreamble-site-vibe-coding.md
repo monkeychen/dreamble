@@ -12,6 +12,14 @@
 
 ## 记录
 
+### 2026-09-16 · 接入百度统计，统计边界改为两层并存
+
+**动机**：GoAccess 只有服务端日志，能看页面访问、来源和 404，但拿不到百度搜索关键词、停留时长、跳出率和新老访客——中文站做 SEO 时缺少关键依据。2026-07-27 遗留的"是否增加前端统计"至此决定：服务端统计保持为主，新增百度统计补齐缺失维度。
+**变更**：先更新 `AGENTS.md` 的统计约定（从"文章页面不得增加客户端 JavaScript、Cookie、指纹或第三方请求"改为服务端与前端两层并存，并写明只允许百度统计一家、必须集中在唯一布局注入、必须向访客披露），再在 `src/layouts/Base.astro` 的 `</head>` 前注入统计脚本，并在 `content/about.md` 新增「本站统计」章节披露用途与退出方式。
+**技术要点**：脚本必须用 `is:inline` 包裹。Astro 默认会把内联 `<script>` 打包成 `/_astro/*.js` 模块外链并加 `type="module"` 延迟执行，会漏采首屏跳出访客。集中注入在唯一布局意味着 7 个 Astro 页面全覆盖，后续换统计服务也只有一处要改。
+**验证**：`npm run verify` 全部通过；`npm run build` 生成 21 页；产物校验 `grep -c "hm.baidu.com/hm.js" dist/{index,posts/index,about/index}.html` 各命中 1 次。
+**遗留**：`public/aihot/index.html` 与 `public/privacy.html` 是独立静态文件、不经 layout，暂无埋点，是否补齐待定。`public/privacy.html` 是 x-reader 应用的隐私政策，与站点统计披露无关。
+
 ### 2026-07-27 · GoAccess 私有流量统计
 
 **动机**：站主需要了解文章访问趋势、热门页面、来源和 404，但不希望破坏纯静态站点与文章零客户端 JavaScript 的边界，也不需要一开始就引入产品行为分析后台。
