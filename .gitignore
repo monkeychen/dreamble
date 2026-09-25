@@ -97,3 +97,6 @@ dist/
 
 # trae
 .trae-html-share-packages/
+
+# skillhub installer local state (content hash etc.)
+_skillhub_meta.json
