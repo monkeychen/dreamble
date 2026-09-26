@@ -95,6 +95,9 @@ dist/
 # astro
 .astro/
 
+# daily-generated aihot morning brief (regenerated every run, deploy via rsync only — not version-controlled)
+site/public/aihot/index.html
+
 # trae
 .trae-html-share-packages/
 
