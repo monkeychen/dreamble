@@ -100,3 +100,9 @@ dist/
 
 # skillhub installer local state (content hash etc.)
 _skillhub_meta.json
+
+# ==========================================
+# Scraped content (baoyu-url-to-markdown CLI output)
+# Local fetch artifacts — not source, not to be committed.
+# ==========================================
+url-to-markdown/
