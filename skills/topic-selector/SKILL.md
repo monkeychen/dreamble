@@ -248,7 +248,7 @@ description: |
 ## 参考文件
 
 - [topic-library.md](references/topic-library.md)：按五条内容线分类的常备选题种子 + 选题库记录格式
-- [angle-guide.md](references/angle-guide.md)：六种差异化角度模板 + 热点过滤器 + 响应时间策略
+- [angle-guide.md](references/angle-guide.md)：八种差异化角度模板 + 热点过滤器 + 响应时间策略
 - [operations-baseline.md](references/operations-baseline.md)：90 天运营目标、数据基线、复盘表模板
 
 ## 额外提示
