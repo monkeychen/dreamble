@@ -12,6 +12,7 @@
 | [`apps/x-reader/`](apps/x-reader/) | 面向移动端的本地文档阅读器，支持 HTML、Markdown、JSON、Log 和纯文本 | [`apps/x-reader/GEMINI.md`](apps/x-reader/GEMINI.md) |
 | [`apps/stockfunnel/`](apps/stockfunnel/) | A 股三步漏斗选股工具：初筛、结构精筛、筹码定筛，含历史回测 | [`apps/stockfunnel/README.md`](apps/stockfunnel/README.md) |
 | [`skills/`](skills/) | 选题、素材搜集、正文写作、事实审校、标题打磨、证券研究等 Agent Skills | [`skills/README.md`](skills/README.md) |
+| [`content-ops/`](content-ops/) | 「聊哉梦呓」内容运营的业务数据：选题流水、发布复盘、数据基线、阶段目标 | [`content-ops/README.md`](content-ops/README.md) |
 | [`prompts/`](prompts/) | 提示词方法与可复用提示词资料 | [`prompts/prompting-guide.md`](prompts/prompting-guide.md) |
 
 仓库根目录的 `articles` 是兼容旧工作流的符号链接，实际指向 `site/content/posts/`。文章只有这一份真源，不要在根目录另建副本。
@@ -91,7 +92,8 @@ dreamble/
 │   ├── x-reader/       # 移动端本地文档阅读器
 │   └── stockfunnel/    # A 股三步漏斗选股与回测工具
 ├── site/               # Astro 静态个人站
-├── skills/             # Agent Skills
+├── skills/             # Agent Skills（方法论，稳定）
+├── content-ops/        # 内容运营业务数据（选题流水/复盘/基线/目标，高频变化）
 ├── prompts/            # 提示词与学习资料
 └── articles -> site/content/posts
 ```
