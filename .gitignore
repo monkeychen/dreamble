@@ -111,3 +111,4 @@ _skillhub_meta.json
 # Local fetch artifacts — not source, not to be committed.
 # ==========================================
 url-to-markdown/
+.baoyu-skills/
