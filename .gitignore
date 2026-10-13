@@ -76,6 +76,8 @@ env/
 temp/
 tmp/
 
+# image output dirs used by baoyu-*/huashu-* skills (tmp/ is the intended place; these are belt-and-braces)
+attachments/
 images/
 outputs/
 .superpowers/
