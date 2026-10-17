@@ -14,7 +14,9 @@
    - 签发并自动改写 nginx 配置：
      `certbot --nginx -d simiam.com --agree-tos -m <你的邮箱> --no-eff-email`
    - 注意：配置 HTTPS 后如需重跑 `site/scripts/server-setup.sh`，脚本会检测到 HTTPS 配置并跳过 nginx 配置写入，不会覆盖 certbot 的修改
-   - 验证自动续期：`certbot renew --dry-run`
+   - 启用自动续期定时器（certbot 装完后 timer 可能处于 disabled 状态，不启用证书会在 90 天后过期）：
+     `systemctl enable --now certbot-renew.timer`
+   - 验证自动续期：`certbot renew --dry-run`，并用 `systemctl list-timers certbot-renew.timer` 确认定时器已排期
 5. 复查：`curl -I https://simiam.com/` 返回 200；http 应 301 到 https
 6. 把 `site/.deploy.env` 的 `SITE_URL` 改回 `https://simiam.com`
 
